@@ -1,13 +1,12 @@
 package main
 
 import (
-	"image/color"
 	"log"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 )
@@ -21,9 +20,25 @@ func main() {
 	myApp := app.New()
 	window := myApp.NewWindow(appName)
 
+	// add properties in vertical box
+	props := container.NewVBox()
+
+	fileName := binding.NewString()
+	props.Add(widget.NewLabelWithData(fileName))
+
+	hash := binding.NewString()
+	props.Add(widget.NewLabelWithData(hash))
+
+	fileType := binding.NewString()
+	props.Add(widget.NewLabelWithData(fileType))
+
+	size := binding.NewString()
+	props.Add(widget.NewLabelWithData(size))
+
 	// add text for the middle in a vertical scroller
-	mainText := canvas.NewText("Select a file...", color.White)
-	middle := container.NewVScroll(mainText)
+	mainText := binding.NewString()
+	middle := container.NewVScroll(widget.NewLabelWithData(mainText))
+	mainText.Set("Select a file...")
 
 	// add buttons in horizontal box
 	buttons := container.NewHBox()
@@ -43,7 +58,12 @@ func main() {
 			}
 
 			log.Printf("chosen: %v", f.URI())
-			processFile(f.URI().String(), &window)
+
+			// get and set the file properties
+			getProps(f.URI().Path(), fileName, hash, fileType, size, &window)
+
+			// process the file and show the analysis
+			processFile(f.URI().Path(), &window, mainText)
 		}
 
 		dialog.ShowFileOpen(onChosen, window)
@@ -53,11 +73,15 @@ func main() {
 	// TODO use NewButtonWithIcon
 	buttons.Add(widget.NewButton("Reset", func() {
 		log.Println("Reset was clicked!")
-		mainText.Text = "Select a file..."
+		mainText.Set("Select a file...")
+		fileName.Set("")
+		fileType.Set("")
+		hash.Set("")
+		size.Set("")
 	}))
 
 	// set layout to borders
-	content := container.NewBorder(nil, buttons, nil, nil, middle)
+	content := container.NewBorder(props, buttons, nil, nil, middle)
 
 	// set default size
 	window.Resize(fyne.NewSize(600, 900))
