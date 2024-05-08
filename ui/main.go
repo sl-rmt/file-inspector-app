@@ -22,23 +22,49 @@ func main() {
 
 	// add properties in vertical box
 	props := container.NewVBox()
+	propsHeading := widget.NewLabel("File Properties")
+	propsHeading.Alignment = fyne.TextAlignCenter
+	props.Add(propsHeading)
 
+	// each property is | label | value | in horizontal box
+	// file name
+	nameAndLabel := container.NewHBox()
 	fileName := binding.NewString()
-	props.Add(widget.NewLabelWithData(fileName))
+	nameAndLabel.Add(widget.NewLabel("File Name:"))
+	nameAndLabel.Add(widget.NewLabelWithData(fileName))
+	props.Add(nameAndLabel)
 
+	// hash
+	hashAndLabel := container.NewHBox()
 	hash := binding.NewString()
-	props.Add(widget.NewLabelWithData(hash))
+	hashAndLabel.Add(widget.NewLabel("SHA256 Hash:"))
+	hashAndLabel.Add(widget.NewLabelWithData(hash))
+	props.Add(hashAndLabel)
 
+	// file mime type
+	typeAndLabel := container.NewHBox()
 	fileType := binding.NewString()
-	props.Add(widget.NewLabelWithData(fileType))
+	typeAndLabel.Add(widget.NewLabel("File Type:"))
+	typeAndLabel.Add(widget.NewLabelWithData(fileType))
+	props.Add(typeAndLabel)
 
+	// file size
+	sizeAndLabel := container.NewHBox()
 	size := binding.NewString()
-	props.Add(widget.NewLabelWithData(size))
+	sizeAndLabel.Add(widget.NewLabel("File Size:"))
+	sizeAndLabel.Add(widget.NewLabelWithData(size))
+	props.Add(sizeAndLabel)
 
-	// add text for the middle in a vertical scroller
-	mainText := binding.NewString()
-	middle := container.NewVScroll(widget.NewLabelWithData(mainText))
-	mainText.Set("Select a file...")
+	// add text for the middle
+	// TODO make this scrollable
+	analysisBox := container.NewVBox()
+	analysisText := binding.NewString()
+	analysisText.Set("Select a file...")
+	analysisTextBox := widget.NewLabelWithData(analysisText)
+	analysisHeading := widget.NewLabel("File Analysis")
+	analysisHeading.Alignment = fyne.TextAlignCenter
+	analysisBox.Add(analysisHeading)
+	analysisBox.Add(analysisTextBox)
 
 	// add buttons in horizontal box
 	buttons := container.NewHBox()
@@ -63,7 +89,7 @@ func main() {
 			getProps(f.URI().Path(), fileName, hash, fileType, size, &window)
 
 			// process the file and show the analysis
-			processFile(f.URI().Path(), &window, mainText)
+			processFile(f.URI().Path(), &window, analysisText)
 		}
 
 		dialog.ShowFileOpen(onChosen, window)
@@ -73,7 +99,7 @@ func main() {
 	// TODO use NewButtonWithIcon
 	buttons.Add(widget.NewButton("Reset", func() {
 		log.Println("Reset was clicked!")
-		mainText.Set("Select a file...")
+		analysisText.Set("Select a file...")
 		fileName.Set("")
 		fileType.Set("")
 		hash.Set("")
@@ -81,7 +107,7 @@ func main() {
 	}))
 
 	// set layout to borders
-	content := container.NewBorder(props, buttons, nil, nil, middle)
+	content := container.NewBorder(props, buttons, nil, nil, analysisBox)
 
 	// set default size
 	window.Resize(fyne.NewSize(600, 900))

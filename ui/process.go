@@ -39,7 +39,7 @@ const (
 
 func getProps(filePath string, fileName, hash, fileType, size binding.String, window *fyne.Window) {
 	// set file name
-	fileName.Set(fmt.Sprintf("Filename: %q", filePath))
+	fileName.Set(filePath)
 
 	// get details
 	details, err := details.GetFileDetails(filePath)
@@ -48,9 +48,9 @@ func getProps(filePath string, fileName, hash, fileType, size binding.String, wi
 	if err != nil {
 		launchErrorDialog(err, window)
 	} else {
-		fileType.Set(fmt.Sprintf("File Type: %q", details.Mimetype))
-		hash.Set(fmt.Sprintf("SHA256 Hash: %q", details.SHA256))
-		size.Set(fmt.Sprintf("File Size: %q", details.SizeString))
+		fileType.Set(details.Mimetype)
+		hash.Set(details.SHA256)
+		size.Set(details.SizeString)
 	}
 }
 
