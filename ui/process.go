@@ -7,6 +7,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/data/binding"
+	"github.com/RedMapleTech/email-parse/emlparse"
 	"github.com/RedMapleTech/email-parse/msgparse"
 	"github.com/RedMapleTech/filehandling-go/details"
 )
@@ -48,22 +49,22 @@ func getProps(filePath string, fileName, hash, fileType, size binding.String, wi
 		launchErrorDialog(err, window)
 	} else {
 		fileType.Set(fmt.Sprintf("File Type: %q", details.Mimetype))
-		hash.Set(fmt.Sprintf("SHA256: %q", details.SHA256))
-		size.Set(fmt.Sprintf("Size: %q", details.SizeString))
+		hash.Set(fmt.Sprintf("SHA256 Hash: %q", details.SHA256))
+		size.Set(fmt.Sprintf("File Size: %q", details.SizeString))
 	}
 }
 
-func processFile(filePath string, window *fyne.Window, text binding.String) {
+func processFile(filePath string, window *fyne.Window, displayText binding.String) {
 	log.Printf("Processing file %q\n", filePath)
 
 	fileExt := path.Ext(filePath)
 
 	switch fileExt {
 	case ".msg":
-		processMsgFile(filePath, window, text)
+		processMsgFile(filePath, window, displayText)
 	case ".eml":
 		log.Println("Parsing email file")
-		processEmlFile(filePath, window)
+		processEmlFile(filePath, window, displayText)
 	case ".docx":
 		log.Println("Parsing document file")
 	default:
@@ -71,7 +72,7 @@ func processFile(filePath string, window *fyne.Window, text binding.String) {
 	}
 }
 
-func processMsgFile(filePath string, window *fyne.Window, text binding.String) {
+func processMsgFile(filePath string, window *fyne.Window, displayText binding.String) {
 	msg, err := msgparse.ReadMsgFile(filePath, false)
 
 	if err != nil {
@@ -91,9 +92,26 @@ func processMsgFile(filePath string, window *fyne.Window, text binding.String) {
 		analysis = fmt.Sprintf("%s\n%s: %q", analysis, fieldName, field)
 	}
 
-	text.Set(analysis)
+	displayText.Set(analysis)
 }
 
-func processEmlFile(filePath string, window *fyne.Window) {
+func processEmlFile(filePath string, window *fyne.Window, displayText binding.String) {
+	emlFile, err := emlparse.ReadFromFile(filePath)
 
+	if err != nil {
+		launchErrorDialog(err, window)
+		return
+	}
+
+	keyHeaders := []string{emlFrom, emlReturnPath, emlTo, emlDate, subject, emlMessageID, emlContentType}
+
+	var analysis string
+
+	// Print values
+	for _, fieldName := range keyHeaders {
+		field := emlFile.Message.Header.Get(fieldName)
+		analysis = fmt.Sprintf("%s\n%s: %q", analysis, fieldName, field)
+	}
+
+	displayText.Set(analysis)
 }
