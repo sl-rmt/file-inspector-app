@@ -37,7 +37,7 @@ const (
 	msgMSIPLabel     = "Microsoft Information Protection (MSIP) Label"
 )
 
-func getProps(filePath string, fileName, hash, fileType, size binding.String, window *fyne.Window) {
+func getProps(filePath string, fileName, hash, fileType, size binding.String, window *fyne.Window) error {
 	// set file name
 	fileName.Set(filePath)
 
@@ -47,16 +47,41 @@ func getProps(filePath string, fileName, hash, fileType, size binding.String, wi
 	// set them if no error
 	if err != nil {
 		launchErrorDialog(err, window)
+		return err
 	} else {
 		fileType.Set(details.Mimetype)
 		hash.Set(details.SHA256)
 		size.Set(details.SizeString)
 	}
+
+	matches := checkMime(path.Ext(filePath), details.Mimetype, window)
+
+	if !matches {
+		return fmt.Errorf("mismatched extension and MIME type")
+	}
+
+	return nil
+}
+
+func checkMime(extension, mime string, window *fyne.Window) bool {
+	switch extension {
+	case ".msg":
+		if mime != "application/vnd.ms-outlook" {
+			launchInfoDialog("Unexpected File Type", fmt.Sprintf("File MIME type %q is not the expected type for %q files. Parsing aborted.", mime, extension), window)
+			return false
+		}
+	case ".eml":
+		if mime != "text/plain; charset=utf-8" {
+			launchInfoDialog("Unexpected File Type", fmt.Sprintf("File MIME type %q is not the expected type for %q files. Parsing aborted.", mime, extension), window)
+			return false
+		}
+	}
+
+	return true
 }
 
 func processFile(filePath string, window *fyne.Window, displayText binding.String) {
 	log.Printf("Processing file %q\n", filePath)
-
 	fileExt := path.Ext(filePath)
 
 	switch fileExt {
@@ -65,8 +90,8 @@ func processFile(filePath string, window *fyne.Window, displayText binding.Strin
 	case ".eml":
 		log.Println("Parsing email file")
 		processEmlFile(filePath, window, displayText)
-	case ".docx":
-		log.Println("Parsing document file")
+	// case ".docx":
+	// 	log.Println("Parsing document file")
 	default:
 		launchInfoDialog("Unknown file", fmt.Sprintf("Can only inspect known file types, not %s", fileExt), window)
 	}
