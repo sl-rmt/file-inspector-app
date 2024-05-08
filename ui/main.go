@@ -86,10 +86,12 @@ func main() {
 			log.Printf("chosen: %v", f.URI())
 
 			// get and set the file properties
-			getProps(f.URI().Path(), fileName, hash, fileType, size, &window)
+			err = getProps(f.URI().Path(), fileName, hash, fileType, size, &window)
 
-			// process the file and show the analysis
-			processFile(f.URI().Path(), &window, analysisText)
+			if err == nil {
+				// process the file and show the analysis
+				processFile(f.URI().Path(), &window, analysisText)
+			}
 		}
 
 		dialog.ShowFileOpen(onChosen, window)
