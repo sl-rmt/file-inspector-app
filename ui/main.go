@@ -22,14 +22,13 @@ func main() {
 	window := myApp.NewWindow(appName)
 
 	// add text for the middle in a vertical scroller
-	middle := container.NewVScroll(canvas.NewText("Select a file...", color.White))
+	mainText := canvas.NewText("Select a file...", color.White)
+	middle := container.NewVScroll(mainText)
 
 	// add buttons in horizontal box
 	buttons := container.NewHBox()
 
 	// TODO use NewButtonWithIcon
-	//var targetFile string
-
 	buttons.Add(widget.NewButton("Select File", func() {
 		log.Println("Select file was clicked!")
 
@@ -44,15 +43,17 @@ func main() {
 			}
 
 			log.Printf("chosen: %v", f.URI())
-			//targetFile = f.URI().String()
+			processFile(f.URI().String(), &window)
 		}
 
 		dialog.ShowFileOpen(onChosen, window)
+
 	}))
 
 	// TODO use NewButtonWithIcon
 	buttons.Add(widget.NewButton("Reset", func() {
 		log.Println("Reset was clicked!")
+		mainText.Text = "Select a file..."
 	}))
 
 	// set layout to borders
@@ -64,4 +65,14 @@ func main() {
 	// run
 	window.SetContent(content)
 	window.ShowAndRun()
+}
+
+func launchErrorDialog(err error, window *fyne.Window) {
+	d := dialog.NewError(err, *window)
+	d.Show()
+}
+
+func launchInfoDialog(title, message string, window *fyne.Window) {
+	d := dialog.NewInformation(title, message, *window)
+	d.Show()
 }
