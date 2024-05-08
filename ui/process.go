@@ -115,7 +115,6 @@ func processMsgFile(filePath string, window *fyne.Window, displayText binding.St
 
 	// print key fields
 	keyFieldNames := []string{msgSender, msgDisplayName, msgSenderSMTP, msgSenderEmail, msgSenderEmail2, msgReceivedName, msgReceivedSMTP, msg7bitEmail, msgReceivedEmail, subject, messageTopic, msgMessageID}
-
 	var analysis bytes.Buffer
 
 	// Print values
@@ -127,32 +126,12 @@ func processMsgFile(filePath string, window *fyne.Window, displayText binding.St
 		}
 	}
 
-	// detail of attachments
+	// add attachment details, if there are any
 	if len(msg.Attachments) > 0 {
-		analysis.WriteString(fmt.Sprintf("\nEmail has %d attachments:\n", len(msg.Attachments)))
-
-		for i, a := range msg.Attachments {
-			analysis.WriteString(fmt.Sprintf("\tAttachment %d:\n", i+1))
-
-			if len(a.Filename) > 0 {
-				analysis.WriteString(fmt.Sprintf("\tFilename: %q\n", a.Filename))
-			}
-			if len(a.LongFilename) > 0 {
-				analysis.WriteString(fmt.Sprintf("\tLong Filename: %q\n", a.LongFilename))
-			}
-
-			if len(a.MimeTag) > 0 {
-				analysis.WriteString(fmt.Sprintf("\tMIME tag: %q\n", a.MimeTag))
-			}
-
-			analysis.WriteString(fmt.Sprintf("\tSize: %d bytes\n", len(a.Bytes)))
-
-			hash := sha256.New()
-			hash.Write(a.Bytes)
-			analysis.WriteString(fmt.Sprintf("\tSHA-256 hash: %q\n\n", hex.EncodeToString(hash.Sum(nil))))
-		}
+		addAttachmentDetails(msg.Attachments, &analysis)
 	}
 
+	// set the analysis text in the bound UI element
 	displayText.Set(analysis.String())
 }
 
@@ -165,7 +144,6 @@ func processEmlFile(filePath string, window *fyne.Window, displayText binding.St
 	}
 
 	keyHeaders := []string{emlFrom, emlReturnPath, emlTo, emlDate, subject, emlMessageID, emlContentType}
-
 	var analysis bytes.Buffer
 
 	// Print values
@@ -177,5 +155,37 @@ func processEmlFile(filePath string, window *fyne.Window, displayText binding.St
 		}
 	}
 
+	// add attachment details, if there are any
+	if len(emlFile.Attachments) > 0 {
+		addAttachmentDetails(emlFile.Attachments, &analysis)
+	}
+
+	// set the analysis text in the bound UI element
 	displayText.Set(analysis.String())
+}
+
+func addAttachmentDetails(attachments []msgparse.Attachment, analysis *bytes.Buffer) {
+	analysis.WriteString(fmt.Sprintf("\nEmail has %d attachments:\n", len(attachments)))
+
+	for i, a := range attachments {
+		analysis.WriteString(fmt.Sprintf("\tAttachment %d:\n", i+1))
+
+		if len(a.Filename) > 0 {
+			analysis.WriteString(fmt.Sprintf("\tFilename: %q\n", a.Filename))
+		}
+		
+		if len(a.LongFilename) > 0 {
+			analysis.WriteString(fmt.Sprintf("\tLong Filename: %q\n", a.LongFilename))
+		}
+
+		if len(a.MimeTag) > 0 {
+			analysis.WriteString(fmt.Sprintf("\tMIME tag: %q\n", a.MimeTag))
+		}
+
+		analysis.WriteString(fmt.Sprintf("\tSize: %d bytes\n", len(a.Bytes)))
+
+		hash := sha256.New()
+		hash.Write(a.Bytes)
+		analysis.WriteString(fmt.Sprintf("\tSHA-256 hash: %q\n\n", hex.EncodeToString(hash.Sum(nil))))
+	}
 }

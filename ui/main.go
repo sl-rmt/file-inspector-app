@@ -16,7 +16,7 @@ const (
 )
 
 func main() {
-	// create an instance
+	// create an app and window instance
 	myApp := app.New()
 	window := myApp.NewWindow(appName)
 
@@ -30,28 +30,28 @@ func main() {
 	// file name
 	nameAndLabel := container.NewHBox()
 	fileName := binding.NewString()
-	nameAndLabel.Add(widget.NewLabel("File Name:"))
+	nameAndLabel.Add(widget.NewLabel("File Name:\t\t"))
 	nameAndLabel.Add(widget.NewLabelWithData(fileName))
 	props.Add(nameAndLabel)
 
 	// hash
 	hashAndLabel := container.NewHBox()
 	hash := binding.NewString()
-	hashAndLabel.Add(widget.NewLabel("SHA256 Hash:"))
+	hashAndLabel.Add(widget.NewLabel("SHA256 Hash:\t"))
 	hashAndLabel.Add(widget.NewLabelWithData(hash))
 	props.Add(hashAndLabel)
 
 	// file mime type
 	typeAndLabel := container.NewHBox()
 	fileType := binding.NewString()
-	typeAndLabel.Add(widget.NewLabel("File Type:"))
+	typeAndLabel.Add(widget.NewLabel("File Type:\t\t"))
 	typeAndLabel.Add(widget.NewLabelWithData(fileType))
 	props.Add(typeAndLabel)
 
 	// file size
 	sizeAndLabel := container.NewHBox()
 	size := binding.NewString()
-	sizeAndLabel.Add(widget.NewLabel("File Size:"))
+	sizeAndLabel.Add(widget.NewLabel("File Size:\t\t"))
 	sizeAndLabel.Add(widget.NewLabelWithData(size))
 	props.Add(sizeAndLabel)
 
@@ -61,6 +61,7 @@ func main() {
 	analysisText := binding.NewString()
 	analysisText.Set("Select a file...")
 	analysisTextBox := widget.NewLabelWithData(analysisText)
+	analysisTextBox.Wrapping = fyne.TextWrapBreak
 	analysisHeading := widget.NewLabel("File Analysis")
 	analysisHeading.Alignment = fyne.TextAlignCenter
 	analysisBox.Add(analysisHeading)
@@ -112,7 +113,7 @@ func main() {
 	content := container.NewBorder(props, buttons, nil, nil, analysisBox)
 
 	// set default size
-	window.Resize(fyne.NewSize(600, 900))
+	window.Resize(fyne.NewSize(700, 900))
 
 	// run
 	window.SetContent(content)
