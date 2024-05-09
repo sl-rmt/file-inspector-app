@@ -55,17 +55,18 @@ func main() {
 	sizeAndLabel.Add(widget.NewLabelWithData(size))
 	props.Add(sizeAndLabel)
 
+	analysisHeading := widget.NewLabel("File Analysis")
+	analysisHeading.Alignment = fyne.TextAlignCenter
+	props.Add(analysisHeading)
+
 	// add text for the middle
 	// TODO make this scrollable
-	analysisBox := container.NewVBox()
+	
 	analysisText := binding.NewString()
 	analysisText.Set("Select a file...")
 	analysisTextBox := widget.NewLabelWithData(analysisText)
 	analysisTextBox.Wrapping = fyne.TextWrapBreak
-	analysisHeading := widget.NewLabel("File Analysis")
-	analysisHeading.Alignment = fyne.TextAlignCenter
-	analysisBox.Add(analysisHeading)
-	analysisBox.Add(analysisTextBox)
+	analysisBox := container.NewScroll(analysisTextBox)
 
 	// add buttons in horizontal box
 	buttons := container.NewHBox()

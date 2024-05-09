@@ -6,18 +6,22 @@ require (
 	fyne.io/fyne/v2 v2.4.5
 	github.com/RedMapleTech/email-parse v0.0.0-20240304161819-8c84b1ec0b9e
 	github.com/RedMapleTech/filehandling-go v1.3.0
+	github.com/RedMapleTech/forensics-email-inspector v0.0.0-20240228164159-ac8e2b578d92
+	github.com/RedMapleTech/url-inspect v0.0.0-20230726150020-e63a4ac8612d
+	mvdan.cc/xurls/v2 v2.5.0
 )
 
 require (
 	fyne.io/systray v1.10.1-0.20231115130155-104f5ef7839e // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/existentiality/urlscan v0.1.1 // indirect
 	github.com/fredbi/uri v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fyne-io/gl-js v0.0.0-20220119005834-d2da28d9ccfe // indirect
 	github.com/fyne-io/glfw-js v0.0.0-20220120001248-ee7290d23504 // indirect
 	github.com/fyne-io/image v0.0.0-20220602074514-4956b0afb3d2 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-gl/gl v0.0.0-20211210172815-726fda9656d6 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20240306074159-ea2d69986ecb // indirect
 	github.com/go-text/render v0.1.0 // indirect
