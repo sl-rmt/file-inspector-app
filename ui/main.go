@@ -20,9 +20,14 @@ func main() {
 	myApp := app.New()
 	window := myApp.NewWindow(appName)
 
+	// setup styles
+	headingStyle := fyne.TextStyle{
+		Bold: true,
+	}
+
 	// add properties in vertical box
 	props := container.NewVBox()
-	propsHeading := widget.NewLabel("File Properties")
+	propsHeading := widget.NewLabelWithStyle("File Properties", fyne.TextAlignCenter, headingStyle)
 	propsHeading.Alignment = fyne.TextAlignCenter
 	props.Add(propsHeading)
 
@@ -55,15 +60,14 @@ func main() {
 	sizeAndLabel.Add(widget.NewLabelWithData(size))
 	props.Add(sizeAndLabel)
 
-	analysisHeading := widget.NewLabel("File Analysis")
-	analysisHeading.Alignment = fyne.TextAlignCenter
+	analysisHeading := widget.NewLabelWithStyle("File Analysis", fyne.TextAlignCenter, headingStyle)
 	props.Add(analysisHeading)
 
 	// add text for the middle
 	// TODO make this scrollable
 	
 	analysisText := binding.NewString()
-	analysisText.Set("Select a file...")
+	analysisText.Set("Select a file to analyse...")
 	analysisTextBox := widget.NewLabelWithData(analysisText)
 	analysisTextBox.Wrapping = fyne.TextWrapBreak
 	analysisBox := container.NewScroll(analysisTextBox)

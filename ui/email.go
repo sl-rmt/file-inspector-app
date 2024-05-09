@@ -190,7 +190,7 @@ func inspectLinks(body string, analysis *bytes.Buffer, window *fyne.Window) {
 			launchErrorDialog(err, window)
 		}
 
-		//log.Printf("Loaded %d common Alexa domains\n", commonChecker.CountKnownDomains())
+		log.Printf("Loaded %d common Alexa domains\n", commonChecker.CountKnownDomains())
 
 		for _, entry := range res {
 			entry = strings.ToLower(entry)
