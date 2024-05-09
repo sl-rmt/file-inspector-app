@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"path"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/data/binding"
@@ -126,13 +127,46 @@ func processMsgFile(filePath string, window *fyne.Window, displayText binding.St
 		}
 	}
 
+	// add details on authentication
+	authHeader, err := msgparse.GetHeaderByName(msg.GetPropertyByName("Message Headers"), authResults)
+
+	if err != nil {
+		launchErrorDialog(err, window)
+	} else if authHeader != "" {
+		parseAuthResults(authHeader, &analysis)
+		analysis.WriteString("\n")
+	}
+
 	// add attachment details, if there are any
 	if len(msg.Attachments) > 0 {
 		addAttachmentDetails(msg.Attachments, &analysis)
 	}
 
+
 	// set the analysis text in the bound UI element
 	displayText.Set(analysis.String())
+}
+
+func parseAuthResults(authHeader string, buffer *bytes.Buffer) {
+	fields := strings.Split(authHeader, ";")
+
+	if len(fields) == 0 {
+		return
+	}
+
+	buffer.WriteString("\nAuthentication results:\n")
+
+	for _, field := range fields {
+		field = strings.TrimSpace(field)
+
+		if strings.HasPrefix(field, "dkim=") || strings.HasPrefix(field, "spf=") || strings.HasPrefix(field, "dmarc=") {
+			if strings.Contains(field, "=pass") {
+				buffer.WriteString(fmt.Sprintf("\tGOOD: %s\n", field))
+			} else {
+				buffer.WriteString(fmt.Sprintf("\tBAD: %s\n", field))
+			}
+		}
+	}
 }
 
 func processEmlFile(filePath string, window *fyne.Window, displayText binding.String) {
@@ -155,6 +189,13 @@ func processEmlFile(filePath string, window *fyne.Window, displayText binding.St
 		}
 	}
 
+	// get the auth results and parse them
+	authHeader := (emlFile.Message.Header.Get(authResults))
+
+	if authHeader != "" {
+		parseAuthResults(authHeader, &analysis)
+	}
+
 	// add attachment details, if there are any
 	if len(emlFile.Attachments) > 0 {
 		addAttachmentDetails(emlFile.Attachments, &analysis)
@@ -173,7 +214,7 @@ func addAttachmentDetails(attachments []msgparse.Attachment, analysis *bytes.Buf
 		if len(a.Filename) > 0 {
 			analysis.WriteString(fmt.Sprintf("\tFilename: %q\n", a.Filename))
 		}
-		
+
 		if len(a.LongFilename) > 0 {
 			analysis.WriteString(fmt.Sprintf("\tLong Filename: %q\n", a.LongFilename))
 		}
