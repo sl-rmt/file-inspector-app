@@ -28,7 +28,6 @@ func main() {
 	// add properties in vertical box
 	props := container.NewVBox()
 	propsHeading := widget.NewLabelWithStyle("File Properties", fyne.TextAlignCenter, headingStyle)
-	propsHeading.Alignment = fyne.TextAlignCenter
 	props.Add(propsHeading)
 
 	// each property is | label | value | in horizontal box
@@ -63,9 +62,7 @@ func main() {
 	analysisHeading := widget.NewLabelWithStyle("File Analysis", fyne.TextAlignCenter, headingStyle)
 	props.Add(analysisHeading)
 
-	// add text for the middle
-	// TODO make this scrollable
-	
+	// add text for the middle	
 	analysisText := binding.NewString()
 	analysisText.Set("Select a file to analyse...")
 	analysisTextBox := widget.NewLabelWithData(analysisText)
