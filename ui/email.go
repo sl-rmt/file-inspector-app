@@ -153,7 +153,7 @@ func addAttachmentDetails(attachments []msgparse.Attachment, analysis *bytes.Buf
 }
 
 func inspectBody(body string, analysis *bytes.Buffer, window *fyne.Window) {
-	analysis.WriteString("Body Details:\n")
+	analysis.WriteString("\nBody Details:\n")
 
 	if len(body) == 0 {
 		analysis.WriteString("\tEmpty body\n")

@@ -29,6 +29,7 @@ func main() {
 	props := container.NewVBox()
 	propsHeading := widget.NewLabelWithStyle("File Properties", fyne.TextAlignCenter, headingStyle)
 	props.Add(propsHeading)
+	props.Add(widget.NewSeparator())
 
 	// each property is | label | value | in horizontal box
 	// file name
@@ -61,6 +62,7 @@ func main() {
 
 	analysisHeading := widget.NewLabelWithStyle("File Analysis", fyne.TextAlignCenter, headingStyle)
 	props.Add(analysisHeading)
+	props.Add(widget.NewSeparator())
 
 	// add text for the middle	
 	analysisText := binding.NewString()
@@ -87,6 +89,7 @@ func main() {
 			}
 
 			log.Printf("chosen: %v", f.URI())
+			progress := launchProcessingDialog(&window)
 
 			// get and set the file properties
 			err = getProps(f.URI().Path(), fileName, hash, fileType, size, &window)
@@ -95,6 +98,8 @@ func main() {
 				// process the file and show the analysis
 				processFile(f.URI().Path(), &window, analysisText)
 			}
+
+			progress.Hide()
 		}
 
 		dialog.ShowFileOpen(onChosen, window)
@@ -130,4 +135,16 @@ func launchErrorDialog(err error, window *fyne.Window) {
 func launchInfoDialog(title, message string, window *fyne.Window) {
 	d := dialog.NewInformation(title, message, *window)
 	d.Show()
+}
+
+func launchProcessingDialog(window *fyne.Window) (*dialog.CustomDialog) {
+	content := container.NewVBox()
+	content.Add(widget.NewLabel("Please wait..."))
+	progressBar := widget.NewProgressBarInfinite()
+	content.Add(progressBar)
+	d := dialog.NewCustomWithoutButtons("Processing", content, *window)
+	progressBar.Start()
+	d.Show()
+
+	return d
 }
