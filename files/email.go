@@ -1,4 +1,4 @@
-package main
+package files
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"log"
 	"strings"
 
-	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/data/binding"
 
 	"mvdan.cc/xurls/v2"
@@ -20,12 +19,11 @@ import (
 	"github.com/RedMapleTech/url-inspect/urls"
 )
 
-func processMsgFile(filePath string, window *fyne.Window, displayText binding.String) {
+func processMsgFile(filePath string, displayText binding.String) error {
 	msg, err := msgparse.ReadMsgFile(filePath, false)
 
 	if err != nil {
-		launchErrorDialog(err, window)
-		return
+		return err
 	}
 
 	log.Println("Email parsing done")
@@ -47,14 +45,14 @@ func processMsgFile(filePath string, window *fyne.Window, displayText binding.St
 	authHeader, err := msgparse.GetHeaderByName(msg.GetPropertyByName("Message Headers"), authResults)
 
 	if err != nil {
-		launchErrorDialog(err, window)
+		return err
 	} else if authHeader != "" {
 		parseAuthResults(authHeader, &analysis)
 		analysis.WriteString("\n")
 	}
 
 	// body details
-	inspectBody(msg.GetPropertyByName("Message body"), &analysis, window)
+	inspectBody(msg.GetPropertyByName("Message body"), &analysis)
 
 	// add attachment details, if there are any
 	if len(msg.Attachments) > 0 {
@@ -63,6 +61,8 @@ func processMsgFile(filePath string, window *fyne.Window, displayText binding.St
 
 	// set the analysis text in the bound UI element
 	displayText.Set(analysis.String())
+
+	return nil
 }
 
 func parseAuthResults(authHeader string, buffer *bytes.Buffer) {
@@ -87,12 +87,11 @@ func parseAuthResults(authHeader string, buffer *bytes.Buffer) {
 	}
 }
 
-func processEmlFile(filePath string, window *fyne.Window, displayText binding.String) {
+func processEmlFile(filePath string, displayText binding.String) error {
 	emlFile, err := emlparse.ReadFromFile(filePath)
 
 	if err != nil {
-		launchErrorDialog(err, window)
-		return
+		return err
 	}
 
 	keyHeaders := []string{emlFrom, emlReturnPath, emlTo, emlDate, subject, emlMessageID, emlContentType}
@@ -115,7 +114,11 @@ func processEmlFile(filePath string, window *fyne.Window, displayText binding.St
 	}
 
 	// body details
-	inspectBody(emlFile.Body, &analysis, window)
+	err = inspectBody(emlFile.Body, &analysis)
+
+	if err != nil {
+		return err
+	}
 
 	// add attachment details, if there are any
 	if len(emlFile.Attachments) > 0 {
@@ -124,6 +127,8 @@ func processEmlFile(filePath string, window *fyne.Window, displayText binding.St
 
 	// set the analysis text in the bound UI element
 	displayText.Set(analysis.String())
+
+	return nil
 }
 
 func addAttachmentDetails(attachments []msgparse.Attachment, analysis *bytes.Buffer) {
@@ -152,12 +157,12 @@ func addAttachmentDetails(attachments []msgparse.Attachment, analysis *bytes.Buf
 	}
 }
 
-func inspectBody(body string, analysis *bytes.Buffer, window *fyne.Window) {
+func inspectBody(body string, analysis *bytes.Buffer) error {
 	analysis.WriteString("\nBody Details:\n")
 
 	if len(body) == 0 {
 		analysis.WriteString("\tEmpty body\n")
-		return
+		return nil
 	} else {
 		// count lines
 		// TODO this is lame - detect html vs plaintext and do something smarter
@@ -167,12 +172,17 @@ func inspectBody(body string, analysis *bytes.Buffer, window *fyne.Window) {
 		analysis.WriteString("\tEmail body has content.\n")
 	}
 
-	inspectLinks(body, analysis, window)
+	err := inspectLinks(body, analysis)
+
+	if err != nil {
+		return err
+	}
 
 	analysis.WriteString("\n")
+	return nil
 }
 
-func inspectLinks(body string, analysis *bytes.Buffer, window *fyne.Window) {
+func inspectLinks(body string, analysis *bytes.Buffer) error {
 	// find all URLs in the body
 	rxStrict := xurls.Strict()
 
@@ -187,7 +197,7 @@ func inspectLinks(body string, analysis *bytes.Buffer, window *fyne.Window) {
 		commonChecker, err := urls.GetCommonURLChecker()
 
 		if err != nil {
-			launchErrorDialog(err, window)
+			return err
 		}
 
 		log.Printf("Loaded %d common Alexa domains\n", commonChecker.CountKnownDomains())
@@ -217,7 +227,7 @@ func inspectLinks(body string, analysis *bytes.Buffer, window *fyne.Window) {
 					isCommon, err := commonChecker.Check(entry)
 
 					if err != nil {
-						launchErrorDialog(err, window)
+						return err
 					}
 
 					if isCommon {
@@ -232,7 +242,7 @@ func inspectLinks(body string, analysis *bytes.Buffer, window *fyne.Window) {
 				isCommon, err := commonChecker.Check(entry)
 
 				if err != nil {
-					launchErrorDialog(err, window)
+					return err
 				}
 
 				if isCommon {
@@ -243,4 +253,5 @@ func inspectLinks(body string, analysis *bytes.Buffer, window *fyne.Window) {
 			}
 		}
 	}
+	return nil
 }

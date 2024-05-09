@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"fyne.io/fyne/v2"
@@ -9,6 +10,8 @@ import (
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
+
+	"file-inspector/files"
 )
 
 const (
@@ -64,7 +67,7 @@ func main() {
 	props.Add(analysisHeading)
 	props.Add(widget.NewSeparator())
 
-	// add text for the middle	
+	// add text for the middle
 	analysisText := binding.NewString()
 	analysisText.Set("Select a file to analyse...")
 	analysisTextBox := widget.NewLabelWithData(analysisText)
@@ -92,11 +95,17 @@ func main() {
 			progress := launchProcessingDialog(&window)
 
 			// get and set the file properties
-			err = getProps(f.URI().Path(), fileName, hash, fileType, size, &window)
+			err = files.SetFileProperties(f.URI().Path(), fileName, hash, fileType, size, &window)
 
-			if err == nil {
+			if err != nil {
+				analysisText.Set(fmt.Sprintf("Error processing file: %q\n", err.Error()))
+			} else {
 				// process the file and show the analysis
-				processFile(f.URI().Path(), &window, analysisText)
+				err := files.ProcessFile(f.URI().Path(), &window, analysisText)
+
+				if err != nil {
+					launchErrorDialog(err, window)
+				}
 			}
 
 			progress.Hide()
@@ -125,26 +134,4 @@ func main() {
 	// run
 	window.SetContent(content)
 	window.ShowAndRun()
-}
-
-func launchErrorDialog(err error, window *fyne.Window) {
-	d := dialog.NewError(err, *window)
-	d.Show()
-}
-
-func launchInfoDialog(title, message string, window *fyne.Window) {
-	d := dialog.NewInformation(title, message, *window)
-	d.Show()
-}
-
-func launchProcessingDialog(window *fyne.Window) (*dialog.CustomDialog) {
-	content := container.NewVBox()
-	content.Add(widget.NewLabel("Please wait..."))
-	progressBar := widget.NewProgressBarInfinite()
-	content.Add(progressBar)
-	d := dialog.NewCustomWithoutButtons("Processing", content, *window)
-	progressBar.Start()
-	d.Show()
-
-	return d
 }

@@ -1,4 +1,4 @@
-package main
+package files
 
 import (
 	"fmt"
@@ -38,7 +38,7 @@ const (
 	msgMimeType = "application/vnd.ms-outlook"
 )
 
-func getProps(filePath string, fileName, hash, fileType, size binding.String, window *fyne.Window) error {
+func SetFileProperties(filePath string, fileName, hash, fileType, size binding.String, window *fyne.Window) error {
 	// set file name
 	fileName.Set(filePath)
 
@@ -47,7 +47,6 @@ func getProps(filePath string, fileName, hash, fileType, size binding.String, wi
 
 	// set them if no error
 	if err != nil {
-		launchErrorDialog(err, window)
 		return err
 	} else {
 		fileType.Set(details.Mimetype)
@@ -55,7 +54,7 @@ func getProps(filePath string, fileName, hash, fileType, size binding.String, wi
 		size.Set(details.SizeString)
 	}
 
-	matches := checkMime(path.Ext(filePath), details.Mimetype, window)
+	matches := checkMime(path.Ext(filePath), details.Mimetype)
 
 	if !matches {
 		return fmt.Errorf("mismatched extension and MIME type")
@@ -64,16 +63,16 @@ func getProps(filePath string, fileName, hash, fileType, size binding.String, wi
 	return nil
 }
 
-func checkMime(extension, mime string, window *fyne.Window) bool {
+func checkMime(extension, mime string) bool {
 	switch extension {
 	case ".msg":
 		if mime != msgMimeType {
-			launchInfoDialog("Unexpected File Type", fmt.Sprintf("File MIME type %q is not the expected type for %q files. Parsing aborted.", mime, extension), window)
+			log.Printf("File extension/mime mismatch. Expected %q, got %q", msgMimeType, mime)
 			return false
 		}
 	case ".eml":
 		if mime != emlMimeType {
-			launchInfoDialog("Unexpected File Type", fmt.Sprintf("File MIME type %q is not the expected type for %q files. Parsing aborted.", mime, extension), window)
+			log.Printf("File extension/mime mismatch. Expected %q, got %q", emlMimeType, mime)
 			return false
 		}
 	}
@@ -81,19 +80,23 @@ func checkMime(extension, mime string, window *fyne.Window) bool {
 	return true
 }
 
-func processFile(filePath string, window *fyne.Window, displayText binding.String) {
+func ProcessFile(filePath string, window *fyne.Window, displayText binding.String) (  error) {
 	log.Printf("Processing file %q\n", filePath)
 	fileExt := path.Ext(filePath)
+	var err error
 
 	switch fileExt {
 	case ".msg":
-		processMsgFile(filePath, window, displayText)
+		log.Println("Parsing email file")
+		err = processMsgFile(filePath, displayText)
 	case ".eml":
 		log.Println("Parsing email file")
-		processEmlFile(filePath, window, displayText)
+		err = processEmlFile(filePath, displayText)
 	// case ".docx":
 	// 	log.Println("Parsing document file")
 	default:
-		launchInfoDialog("Unknown file", fmt.Sprintf("Can only inspect known file types, not %s", fileExt), window)
+		return fmt.Errorf("unknown file extension %q", fileExt)
 	}
+
+	return err
 }
