@@ -54,30 +54,28 @@ func SetFileProperties(filePath string, fileName, hash, fileType, size binding.S
 		size.Set(details.SizeString)
 	}
 
-	matches := checkMime(path.Ext(filePath), details.Mimetype)
+	matches, explanation := checkMime(path.Ext(filePath), details.Mimetype)
 
 	if !matches {
-		return fmt.Errorf("mismatched extension and MIME type")
+		return fmt.Errorf("mismatched extension and MIME type. %s", explanation)
 	}
 
 	return nil
 }
 
-func checkMime(extension, mime string) bool {
+func checkMime(extension, mime string) (bool, string) {
 	switch extension {
 	case ".msg":
 		if mime != msgMimeType {
-			log.Printf("File extension/mime mismatch. Expected %q, got %q", msgMimeType, mime)
-			return false
+			return false, fmt.Sprintf("We expect %s for files with %s extensions, but found %s", msgMimeType, extension, mime)
 		}
 	case ".eml":
 		if mime != emlMimeType {
-			log.Printf("File extension/mime mismatch. Expected %q, got %q", emlMimeType, mime)
-			return false
+			return false, fmt.Sprintf("We expect %s for files with %s extensions, but found %s", emlMimeType, extension, mime)
 		}
 	}
 
-	return true
+	return true, ""
 }
 
 func ProcessFile(filePath string, window *fyne.Window, displayText binding.String) (  error) {
