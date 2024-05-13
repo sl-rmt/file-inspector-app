@@ -106,6 +106,8 @@ func main() {
 				if err != nil {
 					launchErrorDialog(err, window)
 				}
+
+				log.Println("File processing done")
 			}
 
 			progress.Hide()

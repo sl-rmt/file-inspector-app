@@ -41,18 +41,30 @@ func processMsgFile(filePath string, displayText binding.String) error {
 		}
 	}
 
+	// set the analysis text in the bound UI element
+	displayText.Set(analysis.String())
+
 	// add details on authentication
 	authHeader, err := msgparse.GetHeaderByName(msg.GetPropertyByName("Message Headers"), authResults)
+
+	// set the analysis text in the bound UI element
+	displayText.Set(analysis.String())
 
 	if err != nil {
 		return err
 	} else if authHeader != "" {
 		parseAuthResults(authHeader, &analysis)
 		analysis.WriteString("\n")
+
+		// set the analysis text in the bound UI element
+		displayText.Set(analysis.String())
 	}
 
 	// body details
 	inspectBody(msg.GetPropertyByName("Message body"), &analysis)
+
+	// set the analysis text in the bound UI element
+	displayText.Set(analysis.String())
 
 	// add attachment details, if there are any
 	if len(msg.Attachments) > 0 {
@@ -62,6 +74,7 @@ func processMsgFile(filePath string, displayText binding.String) error {
 	// set the analysis text in the bound UI element
 	displayText.Set(analysis.String())
 
+	log.Println("Msg processing done")
 	return nil
 }
 
@@ -85,6 +98,8 @@ func parseAuthResults(authHeader string, buffer *bytes.Buffer) {
 			}
 		}
 	}
+
+	log.Println("Auth processing done")
 }
 
 func processEmlFile(filePath string, displayText binding.String) error {
@@ -106,6 +121,9 @@ func processEmlFile(filePath string, displayText binding.String) error {
 		}
 	}
 
+	// set the analysis text in the bound UI element
+	displayText.Set(analysis.String())
+
 	// get the auth results and parse them
 	authHeader := (emlFile.Message.Header.Get(authResults))
 
@@ -113,25 +131,27 @@ func processEmlFile(filePath string, displayText binding.String) error {
 		parseAuthResults(authHeader, &analysis)
 	}
 
-	// body details
-	err = inspectBody(emlFile.Body, &analysis)
-
-	if err != nil {
-		return err
-	}
+	// set the analysis text in the bound UI element
+	displayText.Set(analysis.String())
 
 	// add attachment details, if there are any
 	if len(emlFile.Attachments) > 0 {
 		addAttachmentDetails(emlFile.Attachments, &analysis)
+
+		// set the analysis text in the bound UI element
+		displayText.Set(analysis.String())
 	}
 
-	// set the analysis text in the bound UI element
+	// body details
+	inspectBody(emlFile.Body, &analysis)
 	displayText.Set(analysis.String())
+	log.Println("Eml processing done")
 
 	return nil
 }
 
 func addAttachmentDetails(attachments []msgparse.Attachment, analysis *bytes.Buffer) {
+	log.Println("Parsing attachments")
 	analysis.WriteString(fmt.Sprintf("\nEmail has %d attachments:\n", len(attachments)))
 
 	for i, a := range attachments {
@@ -157,12 +177,13 @@ func addAttachmentDetails(attachments []msgparse.Attachment, analysis *bytes.Buf
 	}
 }
 
-func inspectBody(body string, analysis *bytes.Buffer) error {
+func inspectBody(body string, analysis *bytes.Buffer) {
+	log.Println("Inspecting email body")
 	analysis.WriteString("\nBody Details:\n")
 
 	if len(body) == 0 {
 		analysis.WriteString("\tEmpty body\n")
-		return nil
+		return
 	} else {
 		// count lines
 		// TODO this is lame - detect html vs plaintext and do something smarter
@@ -175,25 +196,27 @@ func inspectBody(body string, analysis *bytes.Buffer) error {
 	err := inspectLinks(body, analysis)
 
 	if err != nil {
-		return err
+		analysis.WriteString(fmt.Sprintf("\tError inspecting body for links: %s.", err.Error()))
 	}
 
 	analysis.WriteString("\n")
-	return nil
 }
 
 func inspectLinks(body string, analysis *bytes.Buffer) error {
+	log.Println("Looking for links")
+
 	// find all URLs in the body
 	rxStrict := xurls.Strict()
-
-	// TODO this doesn't work in eml bodies as the links span multiple lines
 	res := rxStrict.FindAllString(body, -1)
+
+	log.Printf("Inspecting %d links\n", len(res))
 
 	// if we found any, process them one by one
 	if len(res) > 0 {
 		analysis.WriteString(fmt.Sprintf("\n\tFound %d URLs in the email body:\n", len(res)))
 
 		// check Alexa common 100k domains
+		log.Println("Loading common URLs")
 		commonChecker, err := urls.GetCommonURLChecker()
 
 		if err != nil {
@@ -253,5 +276,6 @@ func inspectLinks(body string, analysis *bytes.Buffer) error {
 			}
 		}
 	}
+
 	return nil
 }
