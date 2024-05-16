@@ -36,6 +36,7 @@ const (
 
 	emlMimeType = "text/plain; charset=utf-8"
 	msgMimeType = "application/vnd.ms-outlook"
+	pdfMimeType = "application/pdf"
 )
 
 func SetFileProperties(filePath string, fileName, hash, fileType, size binding.String, window *fyne.Window) error {
@@ -73,12 +74,16 @@ func checkMime(extension, mime string) (bool, string) {
 		if mime != emlMimeType {
 			return false, fmt.Sprintf("We expect %s for files with %s extensions, but found %s", emlMimeType, extension, mime)
 		}
+	case ".pdf":
+		if mime != pdfMimeType {
+			return false, fmt.Sprintf("We expect %s for files with %s extensions, but found %s", emlMimeType, extension, mime)
+		}
 	}
 
 	return true, ""
 }
 
-func ProcessFile(filePath string, window *fyne.Window, displayText binding.String) (  error) {
+func ProcessFile(filePath string, window *fyne.Window, displayText binding.String) error {
 	log.Printf("Processing file %q\n", filePath)
 	fileExt := path.Ext(filePath)
 	var err error
@@ -90,6 +95,9 @@ func ProcessFile(filePath string, window *fyne.Window, displayText binding.Strin
 	case ".eml":
 		log.Println("Parsing email file")
 		err = processEmlFile(filePath, displayText)
+	case ".pdf":
+		log.Println("Parsing PDF file")
+		err = processPDFFile(filePath, displayText)
 	// case ".docx":
 	// 	log.Println("Parsing document file")
 	default:

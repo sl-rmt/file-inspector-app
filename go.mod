@@ -1,12 +1,15 @@
 module file-inspector
 
-go 1.21.5
+go 1.22
+
+toolchain go1.22.3
 
 require (
 	fyne.io/fyne/v2 v2.4.5
 	github.com/RedMapleTech/email-parse v0.0.0-20240304161819-8c84b1ec0b9e
 	github.com/RedMapleTech/filehandling-go v1.3.0
 	github.com/RedMapleTech/forensics-email-inspector v0.0.0-20240228164159-ac8e2b578d92
+	github.com/RedMapleTech/pdf-parse v0.0.0-20240516103356-5f1c4b59a52c
 	github.com/RedMapleTech/url-inspect v0.0.0-20230726150020-e63a4ac8612d
 	mvdan.cc/xurls/v2 v2.5.0
 )
@@ -37,8 +40,10 @@ require (
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/tevino/abool v1.2.0 // indirect
+	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/yuin/goldmark v1.5.5 // indirect
-	golang.org/x/image v0.11.0 // indirect
+	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a // indirect
+	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/mobile v0.0.0-20230531173138-3c911d8e3eda // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
@@ -46,4 +51,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/js/dom v0.0.0-20210725211120-f030747120f2 // indirect
+	seehuhn.de/go/pdf v0.4.5 // indirect
 )
