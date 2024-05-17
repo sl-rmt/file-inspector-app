@@ -84,14 +84,6 @@ func main() {
 	// add icons in a horizontal box
 	icons := container.NewHBox()
 
-	fileLabel := widget.NewLabel("File")
-	fileIcon := widget.NewFileIcon(nil)
-	fileSeparator := widget.NewSeparator()
-	hideFileIconAndLabel(fileIcon, fileLabel, fileSeparator)
-	icons.Add(fileIcon)
-	icons.Add(fileLabel)
-	icons.Add(fileSeparator)
-	
 	processedLabel := widget.NewLabel("Processed")
 	processedIcon := widget.NewIcon(theme.ConfirmIcon())
 	processedSeparator := widget.NewSeparator()
@@ -138,11 +130,8 @@ func main() {
 			}
 
 			// file chosen - update UI
-			iconSeparator.Show()
+			iconSeparator.Show() // show the separator above the row of icons
 			log.Printf("chosen: %v", f.URI())
-			fileIcon.SetURI(f.URI())
-			showFileIconAndLabel(fileIcon, fileLabel, fileSeparator)
-			
 			progress := launchProcessingDialog(&window)
 
 			// get and set the file properties
@@ -195,8 +184,6 @@ func main() {
 
 		// clear and hide icons
 		iconSeparator.Hide()
-		fileIcon.SetURI(nil)
-		hideFileIconAndLabel(fileIcon, fileLabel, fileSeparator)
 		hideIconAndLabel(processedIcon, processedLabel, processedSeparator)
 		hideIconAndLabel(errorIcon, errorLabel, errorSeparator)
 		hideIconAndLabel(dangerIcon, dangerLabel, dangerSeparator)
@@ -228,18 +215,6 @@ func hideIconAndLabel(icon *widget.Icon, label *widget.Label, sep *widget.Separa
 }
 
 func showIconAndLabel(icon *widget.Icon, label *widget.Label, sep *widget.Separator) {
-	icon.Show()
-	label.Show()
-	sep.Show()
-}
-
-func hideFileIconAndLabel(icon *widget.FileIcon, label *widget.Label, sep *widget.Separator) {
-	icon.Hide()
-	label.Hide()
-	sep.Hide()
-}
-
-func showFileIconAndLabel(icon *widget.FileIcon, label *widget.Label, sep *widget.Separator) {
 	icon.Show()
 	label.Show()
 	sep.Show()
