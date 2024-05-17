@@ -32,14 +32,14 @@ func processMsgFile(result *ProcessResult) {
 
 	// print key fields
 	keyFieldNames := []string{msgSender, msgDisplayName, msgSenderSMTP, msgSenderEmail, msgSenderEmail2, msgReceivedName, msgReceivedSMTP, msg7bitEmail, msgReceivedEmail, subject, messageTopic, msgMessageID}
-	var analysis bytes.Buffer
+	var analysis, metadata bytes.Buffer
 
 	// Print values
 	for _, fieldName := range keyFieldNames {
 		field := msg.GetPropertyByName(fieldName)
 
 		if len(field) > 0 {
-			analysis.WriteString(fmt.Sprintf("%s: %q\n", fieldName, field))
+			metadata.WriteString(fmt.Sprintf("%s: %q\n", fieldName, field))
 		}
 	}
 
@@ -52,8 +52,8 @@ func processMsgFile(result *ProcessResult) {
 		result.Error = err
 		return
 	} else if authHeader != "" {
-		result.Dangerous = parseAuthResults(authHeader, &analysis)
-		analysis.WriteString("\n")
+		result.Dangerous = parseAuthResults(authHeader, &metadata)
+		metadata.WriteString("\n")
 	}
 
 	// body details
@@ -65,6 +65,7 @@ func processMsgFile(result *ProcessResult) {
 	}
 
 	log.Println("Msg processing done")
+	result.Metadata = metadata.String()
 	result.Analysis = analysis.String()
 	result.Completed = true
 }
@@ -81,14 +82,14 @@ func processEmlFile(result *ProcessResult) {
 	}
 
 	keyHeaders := []string{emlFrom, emlReturnPath, emlTo, emlDate, subject, emlMessageID, emlContentType}
-	var analysis bytes.Buffer
+	var analysis, metadata bytes.Buffer
 
 	// Print values
 	for _, fieldName := range keyHeaders {
 		field := emlFile.Message.Header.Get(fieldName)
 
 		if len(field) > 0 {
-			analysis.WriteString(fmt.Sprintf("%s: %q\n", fieldName, field))
+			metadata.WriteString(fmt.Sprintf("%s: %q\n", fieldName, field))
 		}
 	}
 
@@ -97,7 +98,7 @@ func processEmlFile(result *ProcessResult) {
 	result.Dangerous = false
 
 	if authHeader != "" {
-		result.Dangerous = parseAuthResults(authHeader, &analysis)
+		result.Dangerous = parseAuthResults(authHeader, &metadata)
 	}
 
 	// add attachment details, if there are any
@@ -109,6 +110,7 @@ func processEmlFile(result *ProcessResult) {
 	inspectBody(emlFile.Body, &analysis)
 
 	log.Println("Eml processing done")
+	result.Metadata = metadata.String()
 	result.Analysis = analysis.String()
 	result.Completed = true
 }

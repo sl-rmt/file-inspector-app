@@ -95,6 +95,7 @@ type ProcessResult struct {
 	Parsed    bool
 	Completed bool
 	Dangerous bool
+	Metadata  string
 	Analysis  string
 }
 

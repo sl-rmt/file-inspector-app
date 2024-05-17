@@ -9,7 +9,7 @@ import (
 )
 
 func processPDFFile(result *ProcessResult) {
-	var analysis bytes.Buffer
+	var analysis, metadata bytes.Buffer
 
 	// check encryption
 	encrypted, err := pdf.IsEncrypted(result.FilePath)
@@ -29,7 +29,7 @@ func processPDFFile(result *ProcessResult) {
 	}
 
 	// get metadata
-	metadata, err := pdf.GetMetadata(result.FilePath)
+	md, err := pdf.GetMetadata(result.FilePath)
 
 	if err != nil {
 		result.Completed = false
@@ -37,17 +37,12 @@ func processPDFFile(result *ProcessResult) {
 		return
 	}
 
-	analysis.WriteString("File Metadata:\n\n")
-
 	// w := new(tabwriter.Writer)
 	// w.Init(&analysis, 4, 2, 0, '\t', 0)
 
-	for field, value := range metadata {
-		analysis.WriteString(fmt.Sprintf("%s\t%s\n", field, value))
+	for field, value := range md {
+		metadata.WriteString(fmt.Sprintf("%s\t%s\n", field, value))
 	}
-
-	//w.Flush()
-	analysis.WriteString("\n")
 
 	// check for active content
 	activeResult, err := pdf.CheckForActiveContent(result.FilePath)
@@ -58,7 +53,7 @@ func processPDFFile(result *ProcessResult) {
 		return
 	}
 
-	analysis.WriteString("Inspecting for active content:\n\n")
+	analysis.WriteString("Active content in file:\n\n")
 
 	if len(activeResult) == 0 {
 		analysis.WriteString("None found")
@@ -69,5 +64,6 @@ func processPDFFile(result *ProcessResult) {
 
 	log.Println("PDF processing done")
 	result.Analysis = analysis.String()
+	result.Metadata = metadata.String()
 	result.Completed = true
 }
