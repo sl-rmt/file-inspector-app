@@ -22,8 +22,8 @@ func processPDFFile(result *ProcessResult) {
 	}
 
 	if encrypted {
-		analysis.WriteString(fmt.Sprintf("File %q is encrypted and password protected\n", result.FilePath))
-		result.Completed = true
+		result.Analysis = fmt.Sprintf("File %q is encrypted and password protected, so cannot be inspected.\n", result.FilePath)
+		result.Completed = false
 		result.Dangerous = true
 		return
 	}
