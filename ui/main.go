@@ -22,6 +22,10 @@ const (
 func main() {
 	// create an app and window instance
 	myApp := app.New()
+
+	//deprecated: instead "export FYNE_THEME=light"
+	//myApp.Settings().SetTheme(theme.LightTheme())
+
 	window := myApp.NewWindow(appName)
 
 	// setup styles
@@ -32,6 +36,7 @@ func main() {
 	// add properties in vertical box
 	props := container.NewVBox()
 	propsHeading := widget.NewLabelWithStyle("File Properties", fyne.TextAlignCenter, headingStyle)
+	props.Add(widget.NewSeparator())
 	props.Add(propsHeading)
 	props.Add(widget.NewSeparator())
 
@@ -65,6 +70,7 @@ func main() {
 	props.Add(sizeAndLabel)
 
 	analysisHeading := widget.NewLabelWithStyle("File Analysis", fyne.TextAlignCenter, headingStyle)
+	props.Add(widget.NewSeparator())
 	props.Add(analysisHeading)
 	props.Add(widget.NewSeparator())
 
@@ -79,18 +85,33 @@ func main() {
 	icons := container.NewHBox()
 	icons.Size()
 
-	// file type icon
+	fileLabel := widget.NewLabel("File:")
+	fileLabel.Hide()
+	icons.Add(fileLabel)
 	fileIcon := widget.NewFileIcon(nil)
 	fileIcon.Hide()
 	icons.Add(fileIcon)
 
+	completeLabel := widget.NewLabel("Complete:")
+	completeLabel.Hide()
+	icons.Add(completeLabel)
+	completeIcon := widget.NewIcon(theme.ConfirmIcon())
+	completeIcon.Hide()
+	icons.Add(completeIcon)
+
+	errorLabel := widget.NewLabel("Error:")
+	errorLabel.Hide()
+	icons.Add(errorLabel)
 	errorIcon := widget.NewIcon(theme.ErrorIcon())
 	errorIcon.Hide()
 	icons.Add(errorIcon)
 
-	warningIcon := widget.NewIcon(theme.WarningIcon())
-	warningIcon.Hide()
-	icons.Add(warningIcon)
+	dangerLabel := widget.NewLabel("Danger:")
+	dangerLabel.Hide()
+	icons.Add(dangerLabel)
+	dangerIcon := widget.NewIcon(theme.WarningIcon())
+	dangerIcon.Hide()
+	icons.Add(dangerIcon)
 
 	// add buttons in horizontal box
 	buttons := container.NewHBox()
@@ -98,7 +119,7 @@ func main() {
 
 	openButton = widget.NewButtonWithIcon("Select File", theme.FileIcon(), func() {
 		log.Println("Select file was clicked!")
-		
+
 		// lock openbutton
 		openButton.Disable()
 
@@ -112,8 +133,10 @@ func main() {
 				return
 			}
 
+			// file chosen - update UI
 			log.Printf("chosen: %v", f.URI())
 			fileIcon.SetURI(f.URI())
+			fileLabel.Show()
 			fileIcon.Show()
 			progress := launchProcessingDialog(&window)
 
@@ -122,14 +145,22 @@ func main() {
 
 			if err != nil {
 				analysisText.Set(fmt.Sprintf("Error processing file: %q\n", err.Error()))
+				errorLabel.Show()
 				errorIcon.Show()
 			} else {
 				// process the file and show the analysis
 				result := files.ProcessFile(f.URI().Path())
 
+				if result.Completed {
+					completeLabel.Show()
+					completeIcon.Show()
+				}
+
 				if result.Error != nil {
 					launchErrorDialog(result.Error, window)
 					analysisText.Set(result.Error.Error())
+					
+					errorLabel.Show()
 					errorIcon.Show()
 				}
 
@@ -137,7 +168,8 @@ func main() {
 				analysisText.Set(result.Analysis)
 
 				if result.Dangerous {
-					warningIcon.Show()
+					dangerLabel.Show()
+					dangerIcon.Show()
 				}
 			}
 
@@ -150,8 +182,7 @@ func main() {
 
 	buttons.Add(openButton)
 
-	// TODO use NewButtonWithIcon
-	buttons.Add(widget.NewButton("Reset", func() {
+	buttons.Add(widget.NewButtonWithIcon("Reset", theme.MediaReplayIcon(), func() {
 		log.Println("Reset was clicked!")
 
 		// blank all the fields
@@ -163,9 +194,14 @@ func main() {
 
 		// clear and hide icons
 		fileIcon.SetURI(nil)
+		completeLabel.Hide()
+		completeIcon.Hide()
+		fileLabel.Hide()
 		fileIcon.Hide()
+		errorLabel.Hide()
 		errorIcon.Hide()
-		warningIcon.Hide()
+		dangerLabel.Hide()
+		dangerIcon.Hide()
 	}))
 
 	buttonsAndIcons := container.NewVBox()
