@@ -33,14 +33,27 @@ func main() {
 		Bold: true,
 	}
 
+	// properties := binding.BindStringList(
+	// 	&[]string{"Item 1", "Item 2", "Item 3"},
+	// )
+
+	// list := widget.NewListWithData(properties,
+	// 	func() fyne.CanvasObject {
+	// 		return widget.NewLabel("Metadata")
+	// 	},
+	// 	func(i binding.DataItem, o fyne.CanvasObject) {
+	// 		o.(*widget.Label).Bind(i.(binding.String))
+	// 	})
+
 	// add properties in vertical box
+
 	props := container.NewVBox()
+	//props.Add(list)
 	propsHeading := widget.NewLabelWithStyle("File Properties", fyne.TextAlignCenter, headingStyle)
 	props.Add(widget.NewSeparator())
 	props.Add(propsHeading)
 	props.Add(widget.NewSeparator())
 
-	// each property is | label | value | in horizontal box
 	// file name
 	nameAndLabel := container.NewHBox()
 	fileName := binding.NewString()
@@ -135,13 +148,19 @@ func main() {
 			progress := launchProcessingDialog(&window)
 
 			// get and set the file properties
-			err = files.SetFileProperties(f.URI().Path(), fileName, hash, fileType, size, &window)
+			properties, err := files.GetFileProperties(f.URI().Path())
 
 			if err != nil {
 				analysisText.Set(fmt.Sprintf("Error processing file: %q\n", err.Error()))
 				errorLabel.Show()
 				errorIcon.Show()
 			} else {
+				// set the values
+				fileName.Set(properties.FileName)
+				fileType.Set(properties.FileType)
+				hash.Set(properties.Hash)
+				size.Set(properties.Size)
+
 				// process the file and show the analysis
 				result := files.ProcessFile(f.URI().Path())
 

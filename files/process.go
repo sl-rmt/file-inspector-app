@@ -5,8 +5,6 @@ import (
 	"log"
 	"path"
 
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/data/binding"
 	"github.com/RedMapleTech/filehandling-go/details"
 )
 
@@ -39,29 +37,37 @@ const (
 	pdfMimeType = "application/pdf"
 )
 
-func SetFileProperties(filePath string, fileName, hash, fileType, size binding.String, window *fyne.Window) error {
-	// set file name
-	fileName.Set(filePath)
+type FileProperties struct {
+	FileName string
+	Hash     string
+	FileType string
+	Size     string
+}
+
+func GetFileProperties(filePath string) (*FileProperties, error) {
+	props := FileProperties{
+		FileName: filePath,
+	}
 
 	// get details
 	details, err := details.GetFileDetails(filePath)
 
 	// set them if no error
 	if err != nil {
-		return err
+		return nil, err
 	} else {
-		fileType.Set(details.Mimetype)
-		hash.Set(details.SHA256)
-		size.Set(details.SizeString)
+		props.FileType = details.Mimetype
+		props.Hash = details.SHA256
+		props.Size = details.SizeString
 	}
 
 	matches, explanation := checkMime(path.Ext(filePath), details.Mimetype)
 
 	if !matches {
-		return fmt.Errorf("mismatched extension and MIME type. %s", explanation)
+		return nil, fmt.Errorf("mismatched extension and MIME type. %s", explanation)
 	}
 
-	return nil
+	return &props, nil
 }
 
 func checkMime(extension, mime string) (bool, string) {
