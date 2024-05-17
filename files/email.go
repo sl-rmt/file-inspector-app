@@ -19,11 +19,11 @@ import (
 	"github.com/RedMapleTech/url-inspect/urls"
 )
 
-func processMsgFile(filePath string, displayText binding.String) error {
+func processMsgFile(filePath string, displayText binding.String) (bool, error) {
 	msg, err := msgparse.ReadMsgFile(filePath, false)
 
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	log.Println("Email parsing done")
@@ -46,14 +46,12 @@ func processMsgFile(filePath string, displayText binding.String) error {
 
 	// add details on authentication
 	authHeader, err := msgparse.GetHeaderByName(msg.GetPropertyByName("Message Headers"), authResults)
-
-	// set the analysis text in the bound UI element
-	displayText.Set(analysis.String())
+	dangerous := false
 
 	if err != nil {
-		return err
+		return true, err
 	} else if authHeader != "" {
-		parseAuthResults(authHeader, &analysis)
+		dangerous = parseAuthResults(authHeader, &analysis)
 		analysis.WriteString("\n")
 
 		// set the analysis text in the bound UI element
@@ -75,17 +73,19 @@ func processMsgFile(filePath string, displayText binding.String) error {
 	displayText.Set(analysis.String())
 
 	log.Println("Msg processing done")
-	return nil
+	return dangerous, nil
 }
 
-func parseAuthResults(authHeader string, buffer *bytes.Buffer) {
+// return true if dangerous
+func parseAuthResults(authHeader string, buffer *bytes.Buffer) bool {
 	fields := strings.Split(authHeader, ";")
 
 	if len(fields) == 0 {
-		return
+		return true
 	}
 
 	buffer.WriteString("\nAuthentication results:\n")
+	dangerous := false
 
 	for _, field := range fields {
 		field = strings.TrimSpace(field)
@@ -95,18 +95,21 @@ func parseAuthResults(authHeader string, buffer *bytes.Buffer) {
 				buffer.WriteString(fmt.Sprintf("\tGOOD: %s\n", field))
 			} else {
 				buffer.WriteString(fmt.Sprintf("\tBAD: %s\n", field))
+				dangerous = true
 			}
 		}
 	}
 
 	log.Println("Auth processing done")
+	return dangerous
 }
 
-func processEmlFile(filePath string, displayText binding.String) error {
+// return true if dangerous
+func processEmlFile(filePath string, displayText binding.String) (bool, error) {
 	emlFile, err := emlparse.ReadFromFile(filePath)
 
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	keyHeaders := []string{emlFrom, emlReturnPath, emlTo, emlDate, subject, emlMessageID, emlContentType}
@@ -126,9 +129,10 @@ func processEmlFile(filePath string, displayText binding.String) error {
 
 	// get the auth results and parse them
 	authHeader := (emlFile.Message.Header.Get(authResults))
+	dangerous := false
 
 	if authHeader != "" {
-		parseAuthResults(authHeader, &analysis)
+		dangerous = parseAuthResults(authHeader, &analysis)
 	}
 
 	// set the analysis text in the bound UI element
@@ -147,7 +151,7 @@ func processEmlFile(filePath string, displayText binding.String) error {
 	displayText.Set(analysis.String())
 	log.Println("Eml processing done")
 
-	return nil
+	return dangerous, nil
 }
 
 func addAttachmentDetails(attachments []msgparse.Attachment, analysis *bytes.Buffer) {

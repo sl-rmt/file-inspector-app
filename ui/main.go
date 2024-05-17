@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
 	"file-inspector/files"
@@ -74,11 +75,28 @@ func main() {
 	analysisTextBox.Wrapping = fyne.TextWrapBreak
 	analysisBox := container.NewScroll(analysisTextBox)
 
+	// add icons in a horizontal box
+	icons := container.NewHBox()
+	icons.Size()
+
+	// file type icon
+	fileIcon := widget.NewFileIcon(nil)
+	fileIcon.Hide()
+	icons.Add(fileIcon)
+
+	errorIcon := widget.NewIcon(theme.ErrorIcon())
+	errorIcon.Hide()
+	icons.Add(errorIcon)
+
+	warningIcon := widget.NewIcon(theme.WarningIcon())
+	warningIcon.Hide()
+	icons.Add(warningIcon)
+
 	// add buttons in horizontal box
 	buttons := container.NewHBox()
 
 	// TODO use NewButtonWithIcon
-	buttons.Add(widget.NewButton("Select File", func() {
+	buttons.Add(widget.NewButtonWithIcon("Select File", theme.FileIcon(), func() {
 		log.Println("Select file was clicked!")
 
 		onChosen := func(f fyne.URIReadCloser, err error) {
@@ -92,6 +110,8 @@ func main() {
 			}
 
 			log.Printf("chosen: %v", f.URI())
+			fileIcon.SetURI(f.URI())
+			fileIcon.Show()
 			progress := launchProcessingDialog(&window)
 
 			// get and set the file properties
@@ -101,13 +121,18 @@ func main() {
 				analysisText.Set(fmt.Sprintf("Error processing file: %q\n", err.Error()))
 			} else {
 				// process the file and show the analysis
-				err := files.ProcessFile(f.URI().Path(), &window, analysisText)
+				dangerous, err := files.ProcessFile(f.URI().Path(), &window, analysisText)
 
 				if err != nil {
 					launchErrorDialog(err, window)
+					errorIcon.Show()
 				}
 
 				log.Println("File processing done")
+
+				if dangerous {
+					warningIcon.Show()
+				}
 			}
 
 			progress.Hide()
@@ -120,15 +145,30 @@ func main() {
 	// TODO use NewButtonWithIcon
 	buttons.Add(widget.NewButton("Reset", func() {
 		log.Println("Reset was clicked!")
+
+		// blank all the fields
 		analysisText.Set("Select a file...")
 		fileName.Set("")
 		fileType.Set("")
 		hash.Set("")
 		size.Set("")
+
+		// clear and hide icons
+		fileIcon.SetURI(nil)
+		fileIcon.Hide()
+		errorIcon.Hide()
+		warningIcon.Hide()
 	}))
 
+	buttonsAndIcons := container.NewVBox()
+	buttonsAndIcons.Add(widget.NewSeparator())
+	buttonsAndIcons.Add(icons)
+	buttonsAndIcons.Add(widget.NewSeparator())
+	buttonsAndIcons.Add(buttons)
+	buttonsAndIcons.Add(widget.NewSeparator())
+
 	// set layout to borders
-	content := container.NewBorder(props, buttons, nil, nil, analysisBox)
+	content := container.NewBorder(props, buttonsAndIcons, nil, nil, analysisBox)
 
 	// set default size
 	window.Resize(fyne.NewSize(700, 900))
