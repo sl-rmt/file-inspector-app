@@ -3,35 +3,40 @@ package files
 import (
 	"bytes"
 	"fmt"
+	"log"
 
-	"fyne.io/fyne/v2/data/binding"
 	"github.com/RedMapleTech/pdf-parse/pdf"
 )
 
-// return true if dangerous
-func processPDFFile(filePath string, displayText binding.String) (bool, error) {
+func processPDFFile(result *ProcessResult) {
+	var analysis bytes.Buffer
 
 	// check encryption
-	encrypted, err := pdf.IsEncrypted(filePath)
+	encrypted, err := pdf.IsEncrypted(result.FilePath)
 
 	if err != nil {
-		displayText.Set(fmt.Sprintf("Error opening file: %s", err.Error()))
-		return true, nil
+		result.Parsed = false
+		result.Completed = false
+		result.Error = err
+		return
 	}
 
 	if encrypted {
-		displayText.Set(fmt.Sprintf("File %q is encrypted and password protected\n", filePath))
-		return true, nil
+		analysis.WriteString(fmt.Sprintf("File %q is encrypted and password protected\n", result.FilePath))
+		result.Completed = true
+		result.Dangerous = true
+		return
 	}
 
 	// get metadata
-	metadata, err := pdf.GetMetadata(filePath)
+	metadata, err := pdf.GetMetadata(result.FilePath)
 
 	if err != nil {
-		return true, err
+		result.Completed = false
+		result.Error = err
+		return
 	}
 
-	var analysis bytes.Buffer
 	analysis.WriteString("File Metadata:\n\n")
 
 	// w := new(tabwriter.Writer)
@@ -45,24 +50,24 @@ func processPDFFile(filePath string, displayText binding.String) (bool, error) {
 	analysis.WriteString("\n")
 
 	// check for active content
-	result, err := pdf.CheckForActiveContent(filePath)
+	activeResult, err := pdf.CheckForActiveContent(result.FilePath)
 
 	if err != nil {
-		return true, err
+		result.Completed = false
+		result.Error = err
+		return
 	}
 
 	analysis.WriteString("Inspecting for active content:\n\n")
-	dangerous := false
 
-	if len(result) == 0 {
+	if len(activeResult) == 0 {
 		analysis.WriteString("None found")
 	} else {
-		analysis.WriteString(result)
-		dangerous = true
+		analysis.WriteString(activeResult)
+		result.Dangerous = true
 	}
 
-	displayText.Set(analysis.String())
-
-	return dangerous, nil
-
+	log.Println("PDF processing done")
+	result.Analysis = analysis.String()
+	result.Completed = true
 }

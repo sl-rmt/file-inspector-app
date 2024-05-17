@@ -94,10 +94,13 @@ func main() {
 
 	// add buttons in horizontal box
 	buttons := container.NewHBox()
+	var openButton *widget.Button
 
-	// TODO use NewButtonWithIcon
-	buttons.Add(widget.NewButtonWithIcon("Select File", theme.FileIcon(), func() {
+	openButton = widget.NewButtonWithIcon("Select File", theme.FileIcon(), func() {
 		log.Println("Select file was clicked!")
+		
+		// lock openbutton
+		openButton.Disable()
 
 		onChosen := func(f fyne.URIReadCloser, err error) {
 			if err != nil {
@@ -119,28 +122,33 @@ func main() {
 
 			if err != nil {
 				analysisText.Set(fmt.Sprintf("Error processing file: %q\n", err.Error()))
+				errorIcon.Show()
 			} else {
 				// process the file and show the analysis
-				dangerous, err := files.ProcessFile(f.URI().Path(), &window, analysisText)
+				result := files.ProcessFile(f.URI().Path())
 
-				if err != nil {
-					launchErrorDialog(err, window)
+				if result.Error != nil {
+					launchErrorDialog(result.Error, window)
+					analysisText.Set(result.Error.Error())
 					errorIcon.Show()
 				}
 
 				log.Println("File processing done")
+				analysisText.Set(result.Analysis)
 
-				if dangerous {
+				if result.Dangerous {
 					warningIcon.Show()
 				}
 			}
 
 			progress.Hide()
+			openButton.Enable()
 		}
 
 		dialog.ShowFileOpen(onChosen, window)
+	})
 
-	}))
+	buttons.Add(openButton)
 
 	// TODO use NewButtonWithIcon
 	buttons.Add(widget.NewButton("Reset", func() {

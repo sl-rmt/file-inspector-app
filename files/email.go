@@ -8,8 +8,6 @@ import (
 	"log"
 	"strings"
 
-	"fyne.io/fyne/v2/data/binding"
-
 	"mvdan.cc/xurls/v2"
 
 	"github.com/RedMapleTech/email-parse/emlparse"
@@ -19,14 +17,18 @@ import (
 	"github.com/RedMapleTech/url-inspect/urls"
 )
 
-func processMsgFile(filePath string, displayText binding.String) (bool, error) {
-	msg, err := msgparse.ReadMsgFile(filePath, false)
+func processMsgFile(result *ProcessResult) {
+	msg, err := msgparse.ReadMsgFile(result.FilePath, false)
 
 	if err != nil {
-		return true, err
+		result.Parsed = false
+		result.Completed = false
+		result.Error = err
+		return
 	}
 
 	log.Println("Email parsing done")
+	result.Parsed = true
 
 	// print key fields
 	keyFieldNames := []string{msgSender, msgDisplayName, msgSenderSMTP, msgSenderEmail, msgSenderEmail2, msgReceivedName, msgReceivedSMTP, msg7bitEmail, msgReceivedEmail, subject, messageTopic, msgMessageID}
@@ -41,39 +43,74 @@ func processMsgFile(filePath string, displayText binding.String) (bool, error) {
 		}
 	}
 
-	// set the analysis text in the bound UI element
-	displayText.Set(analysis.String())
-
 	// add details on authentication
 	authHeader, err := msgparse.GetHeaderByName(msg.GetPropertyByName("Message Headers"), authResults)
-	dangerous := false
+	result.Dangerous = false
 
 	if err != nil {
-		return true, err
+		result.Completed = false
+		result.Error = err
+		return
 	} else if authHeader != "" {
-		dangerous = parseAuthResults(authHeader, &analysis)
+		result.Dangerous = parseAuthResults(authHeader, &analysis)
 		analysis.WriteString("\n")
-
-		// set the analysis text in the bound UI element
-		displayText.Set(analysis.String())
 	}
 
 	// body details
 	inspectBody(msg.GetPropertyByName("Message body"), &analysis)
-
-	// set the analysis text in the bound UI element
-	displayText.Set(analysis.String())
 
 	// add attachment details, if there are any
 	if len(msg.Attachments) > 0 {
 		addAttachmentDetails(msg.Attachments, &analysis)
 	}
 
-	// set the analysis text in the bound UI element
-	displayText.Set(analysis.String())
-
 	log.Println("Msg processing done")
-	return dangerous, nil
+	result.Analysis = analysis.String()
+	result.Completed = true
+}
+
+// return true if dangerous
+func processEmlFile(result *ProcessResult) {
+	emlFile, err := emlparse.ReadFromFile(result.FilePath)
+
+	if err != nil {
+		result.Parsed = false
+		result.Completed = false
+		result.Error = err
+		return
+	}
+
+	keyHeaders := []string{emlFrom, emlReturnPath, emlTo, emlDate, subject, emlMessageID, emlContentType}
+	var analysis bytes.Buffer
+
+	// Print values
+	for _, fieldName := range keyHeaders {
+		field := emlFile.Message.Header.Get(fieldName)
+
+		if len(field) > 0 {
+			analysis.WriteString(fmt.Sprintf("%s: %q\n", fieldName, field))
+		}
+	}
+
+	// get the auth results and parse them
+	authHeader := (emlFile.Message.Header.Get(authResults))
+	result.Dangerous = false
+
+	if authHeader != "" {
+		result.Dangerous = parseAuthResults(authHeader, &analysis)
+	}
+
+	// add attachment details, if there are any
+	if len(emlFile.Attachments) > 0 {
+		addAttachmentDetails(emlFile.Attachments, &analysis)
+	}
+
+	// body details
+	inspectBody(emlFile.Body, &analysis)
+
+	log.Println("Eml processing done")
+	result.Analysis = analysis.String()
+	result.Completed = true
 }
 
 // return true if dangerous
@@ -104,56 +141,7 @@ func parseAuthResults(authHeader string, buffer *bytes.Buffer) bool {
 	return dangerous
 }
 
-// return true if dangerous
-func processEmlFile(filePath string, displayText binding.String) (bool, error) {
-	emlFile, err := emlparse.ReadFromFile(filePath)
-
-	if err != nil {
-		return true, err
-	}
-
-	keyHeaders := []string{emlFrom, emlReturnPath, emlTo, emlDate, subject, emlMessageID, emlContentType}
-	var analysis bytes.Buffer
-
-	// Print values
-	for _, fieldName := range keyHeaders {
-		field := emlFile.Message.Header.Get(fieldName)
-
-		if len(field) > 0 {
-			analysis.WriteString(fmt.Sprintf("%s: %q\n", fieldName, field))
-		}
-	}
-
-	// set the analysis text in the bound UI element
-	displayText.Set(analysis.String())
-
-	// get the auth results and parse them
-	authHeader := (emlFile.Message.Header.Get(authResults))
-	dangerous := false
-
-	if authHeader != "" {
-		dangerous = parseAuthResults(authHeader, &analysis)
-	}
-
-	// set the analysis text in the bound UI element
-	displayText.Set(analysis.String())
-
-	// add attachment details, if there are any
-	if len(emlFile.Attachments) > 0 {
-		addAttachmentDetails(emlFile.Attachments, &analysis)
-
-		// set the analysis text in the bound UI element
-		displayText.Set(analysis.String())
-	}
-
-	// body details
-	inspectBody(emlFile.Body, &analysis)
-	displayText.Set(analysis.String())
-	log.Println("Eml processing done")
-
-	return dangerous, nil
-}
-
+// TODO return result
 func addAttachmentDetails(attachments []msgparse.Attachment, analysis *bytes.Buffer) {
 	log.Println("Parsing attachments")
 	analysis.WriteString(fmt.Sprintf("\nEmail has %d attachments:\n", len(attachments)))
@@ -181,6 +169,7 @@ func addAttachmentDetails(attachments []msgparse.Attachment, analysis *bytes.Buf
 	}
 }
 
+// TODO return result
 func inspectBody(body string, analysis *bytes.Buffer) {
 	log.Println("Inspecting email body")
 	analysis.WriteString("\nBody Details:\n")

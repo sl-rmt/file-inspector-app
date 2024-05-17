@@ -83,28 +83,41 @@ func checkMime(extension, mime string) (bool, string) {
 	return true, ""
 }
 
-func ProcessFile(filePath string, window *fyne.Window, displayText binding.String) (bool, error) {
+type ProcessResult struct {
+	FilePath  string
+	Error     error
+	Parsed    bool
+	Completed bool
+	Dangerous bool
+	Analysis  string
+}
+
+func ProcessFile(filePath string) *ProcessResult {
 	log.Printf("Processing file %q\n", filePath)
 	fileExt := path.Ext(filePath)
 
-	var err error
-	var dangerous bool
+	res := ProcessResult{
+		FilePath: filePath,
+		Error:    nil,
+	}
 
 	switch fileExt {
 	case ".msg":
 		log.Println("Parsing email file")
-		dangerous, err = processMsgFile(filePath, displayText)
+		processMsgFile(&res)
 	case ".eml":
 		log.Println("Parsing email file")
-		dangerous, err = processEmlFile(filePath, displayText)
+		processEmlFile(&res)
 	case ".pdf":
 		log.Println("Parsing PDF file")
-		dangerous, err = processPDFFile(filePath, displayText)
+		processPDFFile(&res)
 	// case ".docx":
 	// 	log.Println("Parsing document file")
 	default:
-		return true, fmt.Errorf("unknown file extension %q", fileExt)
+		res.Completed = false
+		res.Error = fmt.Errorf("unknown file extension %q", fileExt)
+		return &res
 	}
 
-	return dangerous, err
+	return &res
 }
