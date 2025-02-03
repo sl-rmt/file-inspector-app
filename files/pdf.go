@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"text/tabwriter"
 
-	"github.com/RedMapleTech/pdf-parse/pdf"
+	"file-inspector/files/pdf"
 )
 
 func processPDFFile(result *ProcessResult) {
@@ -37,12 +38,15 @@ func processPDFFile(result *ProcessResult) {
 		return
 	}
 
-	// w := new(tabwriter.Writer)
-	// w.Init(&analysis, 4, 2, 0, '\t', 0)
+	w := new(tabwriter.Writer)
+	w.Init(&metadata, 8, 8, 1, '\t', 0)
 
 	for field, value := range md {
-		metadata.WriteString(fmt.Sprintf("%s\t%s\n", field, value))
+		fmt.Fprintf(w, "%s\t%s\t\n", field, value)
+		//metadata.WriteString(fmt.Sprintf("%s\t%s\n", field, value))
 	}
+
+	w.Flush()
 
 	// check for active content
 	activeResult, err := pdf.CheckForActiveContent(result.FilePath)

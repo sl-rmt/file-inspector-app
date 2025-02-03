@@ -5,7 +5,7 @@ import (
 	"log"
 	"path"
 
-	"github.com/RedMapleTech/filehandling-go/details"
+	"file-inspector/files/details"
 )
 
 const (

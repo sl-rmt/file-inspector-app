@@ -10,11 +10,11 @@ import (
 
 	"mvdan.cc/xurls/v2"
 
-	"github.com/RedMapleTech/email-parse/emlparse"
-	"github.com/RedMapleTech/email-parse/msgparse"
+	"file-inspector/emails/emlparse"
+	"file-inspector/emails/msgparse"
 
-	"github.com/RedMapleTech/forensics-email-inspector/safelinks"
-	"github.com/RedMapleTech/url-inspect/urls"
+	"file-inspector/utils/safelinks"
+	"file-inspector/utils/urls"
 )
 
 func processMsgFile(result *ProcessResult) {

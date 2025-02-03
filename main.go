@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	appName = "File Inspector"
+	appName = "File-Inspector"
 )
 
 func main() {
@@ -75,7 +75,7 @@ func main() {
 	props.Add(widget.NewLabelWithStyle("File Analysis", fyne.TextAlignCenter, headingStyle))
 	props.Add(widget.NewSeparator())
 
-	// add text for the middle
+	// add text for the middle tabs
 	metadataText := binding.NewString()
 	metadataText.Set("Select a file to analyse...")
 	metadataTextBox := widget.NewLabelWithData(metadataText)
@@ -123,7 +123,7 @@ func main() {
 	openButton = widget.NewButtonWithIcon("Select File", theme.FileIcon(), func() {
 		log.Println("Select file was clicked!")
 
-		// lock openbutton
+		// lock open button until we're done processing
 		openButton.Disable()
 
 		onChosen := func(f fyne.URIReadCloser, err error) {
@@ -213,8 +213,8 @@ func main() {
 	buttonsAndIcons.Add(widget.NewSeparator())
 
 	centreBox := container.NewAppTabs(
-		container.NewTabItem("Metadata", metadataBox),
 		container.NewTabItem("Content", analysisBox),
+		container.NewTabItem("Metadata", metadataBox),
 	)
 
 	// set layout to borders
