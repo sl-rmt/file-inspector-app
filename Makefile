@@ -5,3 +5,6 @@ linux:
 
 windows:
 	env GOOS=windows GOARCH=amd64 go build -o file-inspector.exe ui/*.go
+
+win-cross:
+	fyne-cross windows

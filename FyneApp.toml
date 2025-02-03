@@ -1,0 +1,8 @@
+Website = "https://hexiosec.com"
+
+[Details]
+  Icon = "Icon.png"
+  Name = "File-Inspector"
+  ID = "com.hexiosec.fileinspector"
+  Version = "0.0.1"
+  Build = 2
