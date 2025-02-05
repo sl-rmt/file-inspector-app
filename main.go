@@ -18,9 +18,13 @@ import (
 const (
 	appName = "File-Inspector"
 
-	// ColorRed is the red primary color name
-	ColorRed = "red"
-	ColorNameForegroundOnWarning fyne.ThemeColorName = "foregroundOnWarning"
+	filePropertiesText = "File Properties"
+	fileNameText       = "File Name:\t\t"
+	hashLabelText      = "SHA256 Hash:\t"
+	fileTypeText       = "File Type:\t\t"
+	fileSizeText       = "File Size:\t\t"
+	fileSAnalysisText = "File Analysis"
+	defaultSelectText = "\n\n\t\tSelect a file to analyse..."
 )
 
 func main() {
@@ -37,60 +41,42 @@ func main() {
 		Bold: true,
 	}
 
+	// Build file properties section
 	// add properties in vertical box
-	props := container.NewVBox()
-	propsHeading := widget.NewLabelWithStyle("File Properties", fyne.TextAlignCenter, headingStyle)
-	props.Add(widget.NewSeparator())
-	props.Add(propsHeading)
-	props.Add(widget.NewSeparator())
+	props := getPropertiesContainer(headingStyle)
 
 	// file name
-	nameAndLabel := container.NewHBox()
-	fileName := binding.NewString()
-	titleStyle := fyne.TextStyle{
-		Bold: true,
-	}
-	nameAndLabel.Add(widget.NewLabelWithStyle("File Name:\t\t", fyne.TextAlignLeading, titleStyle))
-	nameAndLabel.Add(widget.NewLabelWithData(fileName))
+	fileNameBS := binding.NewString()
+	nameAndLabel := getBoundStringAndLabelContainer(fileNameText, fileNameBS)
 	props.Add(nameAndLabel)
 
-	// hash
-	hashAndLabel := container.NewHBox()
-	hash := binding.NewString()
-	hashAndLabel.Add(widget.NewLabelWithStyle("SHA256 Hash:\t", fyne.TextAlignLeading, titleStyle))
-	hashAndLabel.Add(widget.NewLabelWithData(hash))
+	// hashBS
+	hashBS := binding.NewString()
+	hashAndLabel := getBoundStringAndLabelContainer(hashLabelText, hashBS)
 	props.Add(hashAndLabel)
 
 	// file mime type
-	typeAndLabel := container.NewHBox()
-	fileType := binding.NewString()
-	typeAndLabel.Add(widget.NewLabelWithStyle("File Type:\t\t", fyne.TextAlignLeading, titleStyle))
-	typeAndLabel.Add(widget.NewLabelWithData(fileType))
+	fileTypeBS := binding.NewString()
+	typeAndLabel := getBoundStringAndLabelContainer(fileTypeText, fileTypeBS)
 	props.Add(typeAndLabel)
 
 	// file size
-	sizeAndLabel := container.NewHBox()
-	size := binding.NewString()
-	sizeAndLabel.Add(widget.NewLabelWithStyle("File Size:\t\t", fyne.TextAlignLeading, titleStyle))
-	sizeAndLabel.Add(widget.NewLabelWithData(size))
+	fileSizeBS := binding.NewString()
+	sizeAndLabel := getBoundStringAndLabelContainer(fileSizeText, fileSizeBS)
 	props.Add(sizeAndLabel)
 
+
+	// add file analysis section
 	props.Add(widget.NewSeparator())
-	props.Add(widget.NewLabelWithStyle("File Analysis", fyne.TextAlignCenter, headingStyle))
+	props.Add(widget.NewLabelWithStyle(fileSAnalysisText, fyne.TextAlignCenter, headingStyle))
 	props.Add(widget.NewSeparator())
 
 	// add text for the middle tabs
-	metadataText := binding.NewString()
-	metadataText.Set("Select a file to analyse...")
-	metadataTextBox := widget.NewLabelWithData(metadataText)
-	metadataTextBox.Wrapping = fyne.TextWrapBreak
-	metadataBox := container.NewScroll(metadataTextBox)
+	metadataTextBS := binding.NewString()
+	metadataBox := getScrollContainer(defaultSelectText, metadataTextBS)
 
-	analysisText := binding.NewString()
-	analysisText.Set("Select a file to analyse...")
-	analysisTextBox := widget.NewLabelWithData(analysisText)
-	analysisTextBox.Wrapping = fyne.TextWrapBreak
-	analysisBox := container.NewScroll(analysisTextBox)
+	analysisTextBS := binding.NewString()
+	analysisBox := getScrollContainer(defaultSelectText, analysisTextBS)
 
 	// add icons in a horizontal box
 	icons := container.NewHBox()
@@ -138,6 +124,8 @@ func main() {
 		// lock open button until we're done processing
 		openButton.Disable()
 
+		// TODO make sure the view is reset
+
 		onChosen := func(f fyne.URIReadCloser, err error) {
 			if err != nil {
 				log.Printf("Error from file picker: %s\n", err.Error())
@@ -157,15 +145,15 @@ func main() {
 			properties, err := files.GetFileProperties(f.URI().Path())
 
 			if err != nil {
-				analysisText.Set(fmt.Sprintf("Error processing file: %q\n", err.Error()))
+				analysisTextBS.Set(fmt.Sprintf("Error processing file: %q\n", err.Error()))
 				errorLabel.Show()
 				errorIcon.Show()
 			} else {
 				// set the values
-				fileName.Set(properties.FileName)
-				fileType.Set(properties.FileType)
-				hash.Set(properties.Hash)
-				size.Set(properties.Size)
+				fileNameBS.Set(properties.FileName)
+				fileTypeBS.Set(properties.FileType)
+				hashBS.Set(properties.Hash)
+				fileSizeBS.Set(properties.Size)
 
 				// process the file and show the analysis
 				result := files.ProcessFile(f.URI().Path())
@@ -176,13 +164,13 @@ func main() {
 
 				if result.Error != nil {
 					launchErrorDialog(result.Error, window)
-					analysisText.Set(result.Error.Error())
+					analysisTextBS.Set(result.Error.Error())
 					showIconAndLabel(errorIcon, errorLabel, errorSeparator)
 				}
 
 				log.Println("File processing done")
-				metadataText.Set(result.Metadata)
-				analysisText.Set(result.Analysis)
+				metadataTextBS.Set(result.Metadata)
+				analysisTextBS.Set(result.Analysis)
 
 				if result.Dangerous {
 					showIconAndLabel(dangerIcon, dangerLabel, dangerSeparator)
@@ -202,12 +190,12 @@ func main() {
 		log.Println("Reset was clicked!")
 
 		// blank all the fields
-		analysisText.Set("Select a file...")
-		metadataText.Set("Select a file...")
-		fileName.Set("")
-		fileType.Set("")
-		hash.Set("")
-		size.Set("")
+		analysisTextBS.Set("Select a file...")
+		metadataTextBS.Set("Select a file...")
+		fileNameBS.Set("")
+		fileTypeBS.Set("")
+		hashBS.Set("")
+		fileSizeBS.Set("")
 
 		// clear and hide icons
 		iconSeparator.Hide()
