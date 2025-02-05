@@ -95,7 +95,9 @@ func main() {
 	// add icons in a horizontal box
 	icons := container.NewHBox()
 
+	// Processed icon - if successfully processed
 	processedLabel := widget.NewLabel("Processed")
+	processedLabel.TextStyle.Bold = true
 	processedIcon := widget.NewIcon(theme.NewSuccessThemedResource(theme.ConfirmIcon()))
 	processedSeparator := widget.NewSeparator()
 	hideIconAndLabel(processedIcon, processedLabel, processedSeparator)
@@ -103,7 +105,9 @@ func main() {
 	icons.Add(processedLabel)
 	icons.Add(processedSeparator)
 
+	// Error icon - if fille processing fails
 	errorLabel := widget.NewLabel("Error")
+	errorLabel.TextStyle.Bold = true
 	// make a red error icon
 	errorIcon := widget.NewIcon(theme.NewErrorThemedResource(theme.ErrorIcon()))
 	errorSeparator := widget.NewSeparator()
@@ -112,7 +116,9 @@ func main() {
 	icons.Add(errorLabel)
 	icons.Add(errorSeparator)
 
+	// Danger icon - only show where we find something suspicious
 	dangerLabel := widget.NewLabel("Danger")
+	dangerLabel.TextStyle.Bold = true
 	// make an orange danger icon
 	dangerIcon := widget.NewIcon(theme.NewWarningThemedResource(theme.WarningIcon()))
 	dangerSeparator := widget.NewSeparator()
