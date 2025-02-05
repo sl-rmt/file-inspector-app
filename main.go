@@ -17,6 +17,10 @@ import (
 
 const (
 	appName = "File-Inspector"
+
+	// ColorRed is the red primary color name
+	ColorRed = "red"
+	ColorNameForegroundOnWarning fyne.ThemeColorName = "foregroundOnWarning"
 )
 
 func main() {
@@ -92,7 +96,7 @@ func main() {
 	icons := container.NewHBox()
 
 	processedLabel := widget.NewLabel("Processed")
-	processedIcon := widget.NewIcon(theme.ConfirmIcon())
+	processedIcon := widget.NewIcon(theme.NewSuccessThemedResource(theme.ConfirmIcon()))
 	processedSeparator := widget.NewSeparator()
 	hideIconAndLabel(processedIcon, processedLabel, processedSeparator)
 	icons.Add(processedIcon)
@@ -100,7 +104,8 @@ func main() {
 	icons.Add(processedSeparator)
 
 	errorLabel := widget.NewLabel("Error")
-	errorIcon := widget.NewIcon(theme.ErrorIcon())
+	// make a red error icon
+	errorIcon := widget.NewIcon(theme.NewErrorThemedResource(theme.ErrorIcon()))
 	errorSeparator := widget.NewSeparator()
 	hideIconAndLabel(errorIcon, errorLabel, errorSeparator)
 	icons.Add(errorIcon)
@@ -108,7 +113,8 @@ func main() {
 	icons.Add(errorSeparator)
 
 	dangerLabel := widget.NewLabel("Danger")
-	dangerIcon := widget.NewIcon(theme.WarningIcon())
+	// make an orange danger icon
+	dangerIcon := widget.NewIcon(theme.NewWarningThemedResource(theme.WarningIcon()))
 	dangerSeparator := widget.NewSeparator()
 	hideIconAndLabel(dangerIcon, dangerLabel, dangerSeparator)
 	icons.Add(dangerIcon)
