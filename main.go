@@ -23,8 +23,8 @@ const (
 	hashLabelText      = "SHA256 Hash:\t"
 	fileTypeText       = "File Type:\t\t"
 	fileSizeText       = "File Size:\t\t"
-	fileSAnalysisText = "File Analysis"
-	defaultSelectText = "\n\n\t\tSelect a file to analyse..."
+	fileSAnalysisText  = "File Analysis"
+	defaultSelectText  = "\n\n\t\tSelect a file to analyse..."
 )
 
 func main() {
@@ -65,7 +65,6 @@ func main() {
 	sizeAndLabel := getBoundStringAndLabelContainer(fileSizeText, fileSizeBS)
 	props.Add(sizeAndLabel)
 
-
 	// add file analysis section
 	props.Add(widget.NewSeparator())
 	props.Add(widget.NewLabelWithStyle(fileSAnalysisText, fyne.TextAlignCenter, headingStyle))
@@ -82,36 +81,23 @@ func main() {
 	icons := container.NewHBox()
 
 	// Processed icon - if successfully processed
-	processedLabel := widget.NewLabel("Processed")
-	processedLabel.TextStyle.Bold = true
-	processedIcon := widget.NewIcon(theme.NewSuccessThemedResource(theme.ConfirmIcon()))
-	processedSeparator := widget.NewSeparator()
-	hideIconAndLabel(processedIcon, processedLabel, processedSeparator)
+	processedIcon, processedLabel, processedSeparator := getIconAndLabel("Processed", true, confirmIcon)
 	icons.Add(processedIcon)
 	icons.Add(processedLabel)
 	icons.Add(processedSeparator)
 
-	// Error icon - if fille processing fails
-	errorLabel := widget.NewLabel("Error")
-	errorLabel.TextStyle.Bold = true
-	// make a red error icon
-	errorIcon := widget.NewIcon(theme.NewErrorThemedResource(theme.ErrorIcon()))
-	errorSeparator := widget.NewSeparator()
-	hideIconAndLabel(errorIcon, errorLabel, errorSeparator)
+	// Error icon - if file processing fails
+	errorIcon, errorLabel, errorSeparator  := getIconAndLabel("Error", true, errorIcon)
 	icons.Add(errorIcon)
 	icons.Add(errorLabel)
 	icons.Add(errorSeparator)
 
 	// Danger icon - only show where we find something suspicious
-	dangerLabel := widget.NewLabel("Danger")
-	dangerLabel.TextStyle.Bold = true
-	// make an orange danger icon
-	dangerIcon := widget.NewIcon(theme.NewWarningThemedResource(theme.WarningIcon()))
-	dangerSeparator := widget.NewSeparator()
-	hideIconAndLabel(dangerIcon, dangerLabel, dangerSeparator)
+	dangerIcon, dangerLabel, dangerSeparator := getIconAndLabel("Danger", true, warningIcon)
 	icons.Add(dangerIcon)
 	icons.Add(dangerLabel)
 	icons.Add(dangerSeparator)
+
 	iconSeparator := widget.NewSeparator()
 
 	// add buttons in horizontal box

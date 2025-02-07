@@ -4,9 +4,17 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
+const (
+	errorIcon   = "error"
+	confirmIcon = "confirm"
+	warningIcon = "warning"
+)
+
+// Container box
 func getPropertiesContainer(headingStyle fyne.TextStyle) *fyne.Container {
 	props := container.NewVBox()
 	propsHeading := widget.NewLabelWithStyle(filePropertiesText, fyne.TextAlignCenter, headingStyle)
@@ -33,4 +41,36 @@ func getScrollContainer(labelText string, boundString binding.String) *container
 	textBox.Wrapping = fyne.TextWrapBreak
 	container := container.NewScroll(textBox)
 	return container
+}
+
+func getIconAndLabel(labelText string, hidden bool, styleType string) (*widget.Icon, *widget.Label, *widget.Separator) {
+	// make the label
+	label := widget.NewLabel(labelText)
+	label.TextStyle.Bold = true
+
+	// make the icon
+	var icon *widget.Icon
+
+	// change the default icon type depending on what's requested
+	switch styleType {
+	case errorIcon:
+		icon = widget.NewIcon(theme.NewErrorThemedResource(theme.ErrorIcon()))
+	case confirmIcon:
+		icon = widget.NewIcon(theme.NewSuccessThemedResource(theme.ConfirmIcon()))
+	case warningIcon:
+		icon = widget.NewIcon(theme.NewWarningThemedResource(theme.WarningIcon()))
+	default:
+		// TODO what's a sensible default icon?
+		icon = widget.NewIcon(theme.NewPrimaryThemedResource(theme.FileIcon()))
+	}
+
+	// make the separator
+	separator := widget.NewSeparator()
+
+	// hide them all
+	if hidden {
+		hideIconAndLabel(icon, label, separator)
+	}
+
+	return icon, label, separator
 }
