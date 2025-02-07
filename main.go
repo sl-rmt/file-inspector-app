@@ -110,8 +110,6 @@ func main() {
 		// lock open button until we're done processing
 		openButton.Disable()
 
-		// TODO make sure the view is reset
-
 		onChosen := func(f fyne.URIReadCloser, err error) {
 			if err != nil {
 				log.Printf("Error from file picker: %s\n", err.Error())
@@ -125,7 +123,15 @@ func main() {
 			// file chosen - update UI
 			iconSeparator.Show() // show the separator above the row of icons
 			log.Printf("chosen: %v", f.URI())
+			
+			// check chosen file
+			if !fileOkayToProcess(f.URI().Path()) {
+				launchInfoDialog("Unsupported File Type", "File is not currently supported", &window)
+			}			
+			
 			progress := launchProcessingDialog(&window)
+
+			// TODO make sure the view is reset
 
 			// get and set the file properties
 			properties, err := files.GetFileProperties(f.URI().Path())
