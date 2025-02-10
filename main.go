@@ -145,7 +145,7 @@ func main() {
 	content := container.NewBorder(props, buttonsAndIcons, nil, nil, centreBox)
 
 	// TODO set up drag and drop
-	//window.SetOnDropped()
+	//window.SetOnDropped(onFileDroppedin)
 
 	// set default size
 	window.Resize(fyne.NewSize(700, 900))
@@ -166,3 +166,11 @@ func showIconAndLabel(icon *widget.Icon, label *widget.Label, sep *widget.Separa
 	label.Show()
 	sep.Show()
 }
+
+// TODO get this working
+// // this is called if a file is dropped into the UI
+// func onFileDroppedin(_ fyne.Position, uris []fyne.URI) {
+// 	log.Printf("%d files dropped in\n", len(uris))
+
+// 	onFileChosen(uris[0], nil)
+// }
