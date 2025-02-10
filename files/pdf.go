@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 	"text/tabwriter"
 
 	"file-inspector/files/pdf"
@@ -32,21 +33,24 @@ func processPDFFile(result *ProcessResult) {
 	// get metadata
 	md, err := pdf.GetMetadata(result.FilePath)
 
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "Failed to get any metadata") {
 		result.Completed = false
 		result.Error = err
 		return
 	}
 
-	w := new(tabwriter.Writer)
-	w.Init(&metadata, 8, 8, 1, '\t', 0)
+	if len(md) > 0 {
+		w := new(tabwriter.Writer)
+		w.Init(&metadata, 0, 8, 1, '\t', 0)
 
-	for field, value := range md {
-		fmt.Fprintf(w, "%s\t%s\t\n", field, value)
-		//metadata.WriteString(fmt.Sprintf("%s\t%s\n", field, value))
+		for field, value := range md {
+			fmt.Fprintf(w, "%s\t%s\n", strings.TrimSpace(field), value)
+		}
+
+		w.Flush()
+	} else {
+		metadata.WriteString("No metadata found in file")
 	}
-
-	w.Flush()
 
 	// check for active content
 	activeResult, err := pdf.CheckForActiveContent(result.FilePath)
@@ -60,7 +64,7 @@ func processPDFFile(result *ProcessResult) {
 	analysis.WriteString("Active content in file:\n\n")
 
 	if len(activeResult) == 0 {
-		analysis.WriteString("None found")
+		analysis.WriteString("\t✅ None found")
 	} else {
 		analysis.WriteString(activeResult)
 		result.Dangerous = true

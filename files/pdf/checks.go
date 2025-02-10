@@ -30,28 +30,28 @@ func CheckForActiveContent(filePath string) (string, error) {
 	fd, err := os.Open(filePath)
 
 	if err != nil {
-		return "Failed to complete checks", err
+		return "❓ Failed to complete checks", err
 	}
 
 	reader, err := getReader(filePath)
 
 	if err != nil {
-		return "Failed to complete checks", err
+		return "❓Failed to complete checks", err
 	}
 
 	info, err := pdf.SequentialScan(fd)
 
 	if err != nil {
-		return "Failed to complete checks", err
+		return "❓Failed to complete checks", err
 	}
 
-	keywords := []string{
-		"/JavaScript", // "<<\n/EmbeddedFiles 243 0 R\n/JavaScript 251 0 R\n>>"
-		"/AcroForm",   // "<<\n/AcroForm 249 0 R\n/Metadata 245 0 R\n/Names 250 0 R\n/Outlines 176 0 R\n/
-		"/JS",
-		"/OpenAction",
-		"/Launch",
-		"/AA",
+	keywords := [][]string{
+		{"/JavaScript","Javascript content is an embedded script that can run when the document is opened"}, // "<<\n/EmbeddedFiles 243 0 R\n/JavaScript 251 0 R\n>>"
+		{"/AcroForm","Active content use to build an editable form"},   // "<<\n/AcroForm 249 0 R\n/Metadata 245 0 R\n/Names 250 0 R\n/Outlines 176 0 R\n/
+		{"/JS","Javascript aka 'JS' content is an embedded script that can run when the document is opened"},
+		{"/OpenAction","An active action that is designed to run when the PDF is opened"},
+		{"/Launch","An active action that is designed to run when the PDF is opened"},
+		{"/AA","An active action 'AA' that is designed to run when the PDF is opened"},
 	}
 
 	var result bytes.Buffer
@@ -70,7 +70,7 @@ func CheckForActiveContent(filePath string) (string, error) {
 			object, err := reader.Get(fileObject.Reference, true)
 
 			if err != nil {
-				result.WriteString(fmt.Sprintf("Failed to get obj: %s", err.Error()))
+				result.WriteString(fmt.Sprintf("❓Failed to get obj: %s", err.Error()))
 			}
 
 			var buf bytes.Buffer
@@ -78,7 +78,7 @@ func CheckForActiveContent(filePath string) (string, error) {
 			err = object.PDF(writer)
 
 			if err != nil {
-				result.WriteString(fmt.Sprintf("Failed to write obj: %s", err.Error()))
+				result.WriteString(fmt.Sprintf("❓Failed to write obj: %s", err.Error()))
 			}
 
 			// need to flush the writer to get the bytes in to the buffer
@@ -102,7 +102,7 @@ func CheckForActiveContent(filePath string) (string, error) {
 
 				// Check all the known keywords
 				for i, keyword := range keywords {
-					if strings.Contains(header, keyword) {
+					if strings.Contains(header, keyword[0]) {
 						//log.Printf("Found %q in object %d\n", keyword, n)
 						counts[i]++
 					}
@@ -114,7 +114,7 @@ func CheckForActiveContent(filePath string) (string, error) {
 
 	for i, c := range counts {
 		if c > 0 {
-			result.WriteString(fmt.Sprintf("Found %d instances of active content %q in the file's objects.\n", c, keywords[i]))
+			result.WriteString(fmt.Sprintf("☠️ Found %d references to the active content %q in the file's objects. %s.\n\n", c, keywords[i][0], keywords[i][1]))
 		}
 	}
 
