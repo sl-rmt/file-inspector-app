@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	errorIcon   = "error"
-	confirmIcon = "confirm"
-	warningIcon = "warning"
+	errorIconType   = "error"
+	confirmIconType = "confirm"
+	warningIconType = "warning"
 )
 
 // Container box
@@ -53,11 +53,11 @@ func getIconAndLabel(labelText string, hidden bool, styleType string) (*widget.I
 
 	// change the default icon type depending on what's requested
 	switch styleType {
-	case errorIcon:
+	case errorIconType:
 		icon = widget.NewIcon(theme.NewErrorThemedResource(theme.ErrorIcon()))
-	case confirmIcon:
+	case confirmIconType:
 		icon = widget.NewIcon(theme.NewSuccessThemedResource(theme.ConfirmIcon()))
-	case warningIcon:
+	case warningIconType:
 		icon = widget.NewIcon(theme.NewWarningThemedResource(theme.WarningIcon()))
 	default:
 		// TODO what's a sensible default icon?

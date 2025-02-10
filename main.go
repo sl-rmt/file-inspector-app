@@ -1,18 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"log"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
-	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-
-	"file-inspector/files"
 )
 
 const (
@@ -27,6 +21,32 @@ const (
 	defaultSelectText  = "\n\n\t\tSelect a file to analyse..."
 )
 
+// These all need to be global to allow us to break up some of the functions
+var (
+	window        fyne.Window
+	openButton    *widget.Button
+	iconSeparator *widget.Separator
+
+	analysisTextBS binding.String
+	fileNameBS     binding.String
+	fileTypeBS     binding.String
+	fileSizeBS     binding.String
+	fileHashBS     binding.String
+	metadataTextBS binding.String
+
+	errorLabel     *widget.Label
+	errorIcon      *widget.Icon
+	errorSeparator *widget.Separator
+
+	processedIcon      *widget.Icon
+	processedLabel     *widget.Label
+	processedSeparator *widget.Separator
+
+	dangerIcon      *widget.Icon
+	dangerLabel     *widget.Label
+	dangerSeparator *widget.Separator
+)
+
 func main() {
 	// create an app and window instance
 	myApp := app.New()
@@ -34,7 +54,7 @@ func main() {
 	//deprecated: instead "export FYNE_THEME=light"
 	//myApp.Settings().SetTheme(theme.LightTheme())
 
-	window := myApp.NewWindow(appName)
+	window = myApp.NewWindow(appName)
 
 	// setup styles
 	headingStyle := fyne.TextStyle{
@@ -46,22 +66,22 @@ func main() {
 	props := getPropertiesContainer(headingStyle)
 
 	// file name
-	fileNameBS := binding.NewString()
+	fileNameBS = binding.NewString()
 	nameAndLabel := getBoundStringAndLabelContainer(fileNameText, fileNameBS)
 	props.Add(nameAndLabel)
 
 	// hashBS
-	hashBS := binding.NewString()
-	hashAndLabel := getBoundStringAndLabelContainer(hashLabelText, hashBS)
+	fileHashBS = binding.NewString()
+	hashAndLabel := getBoundStringAndLabelContainer(hashLabelText, fileHashBS)
 	props.Add(hashAndLabel)
 
 	// file mime type
-	fileTypeBS := binding.NewString()
+	fileTypeBS = binding.NewString()
 	typeAndLabel := getBoundStringAndLabelContainer(fileTypeText, fileTypeBS)
 	props.Add(typeAndLabel)
 
 	// file size
-	fileSizeBS := binding.NewString()
+	fileSizeBS = binding.NewString()
 	sizeAndLabel := getBoundStringAndLabelContainer(fileSizeText, fileSizeBS)
 	props.Add(sizeAndLabel)
 
@@ -71,130 +91,42 @@ func main() {
 	props.Add(widget.NewSeparator())
 
 	// add text for the middle tabs
-	metadataTextBS := binding.NewString()
+	metadataTextBS = binding.NewString()
 	metadataBox := getScrollContainer(defaultSelectText, metadataTextBS)
 
-	analysisTextBS := binding.NewString()
+	analysisTextBS = binding.NewString()
 	analysisBox := getScrollContainer(defaultSelectText, analysisTextBS)
 
 	// add icons in a horizontal box
 	icons := container.NewHBox()
 
 	// Processed icon - if successfully processed
-	processedIcon, processedLabel, processedSeparator := getIconAndLabel("Processed", true, confirmIcon)
+	processedIcon, processedLabel, processedSeparator = getIconAndLabel("Processed", true, confirmIconType)
 	icons.Add(processedIcon)
 	icons.Add(processedLabel)
 	icons.Add(processedSeparator)
 
 	// Error icon - if file processing fails
-	errorIcon, errorLabel, errorSeparator  := getIconAndLabel("Error", true, errorIcon)
+	errorIcon, errorLabel, errorSeparator = getIconAndLabel("Error", true, errorIconType)
 	icons.Add(errorIcon)
 	icons.Add(errorLabel)
 	icons.Add(errorSeparator)
 
 	// Danger icon - only show where we find something suspicious
-	dangerIcon, dangerLabel, dangerSeparator := getIconAndLabel("Danger", true, warningIcon)
+	dangerIcon, dangerLabel, dangerSeparator = getIconAndLabel("Danger", true, warningIconType)
 	icons.Add(dangerIcon)
 	icons.Add(dangerLabel)
 	icons.Add(dangerSeparator)
 
-	iconSeparator := widget.NewSeparator()
+	iconSeparator = widget.NewSeparator()
 
 	// add buttons in horizontal box
 	buttons := container.NewHBox()
-	var openButton *widget.Button
-
-	openButton = widget.NewButtonWithIcon("Select File", theme.FileIcon(), func() {
-		log.Println("Select file was clicked!")
-
-		// lock open button until we're done processing
-		openButton.Disable()
-
-		onChosen := func(f fyne.URIReadCloser, err error) {
-			if err != nil {
-				log.Printf("Error from file picker: %s\n", err.Error())
-				return
-			}
-			if f == nil {
-				log.Println("Nil result from file picker")
-				return
-			}
-
-			// file chosen - update UI
-			iconSeparator.Show() // show the separator above the row of icons
-			log.Printf("chosen: %v", f.URI())
-			
-			// check chosen file
-			if !fileOkayToProcess(f.URI().Path()) {
-				launchInfoDialog("Unsupported File Type", "File is not currently supported", &window)
-			}			
-			
-			progress := launchProcessingDialog(&window)
-
-			// TODO make sure the view is reset
-
-			// get and set the file properties
-			properties, err := files.GetFileProperties(f.URI().Path())
-
-			if err != nil {
-				analysisTextBS.Set(fmt.Sprintf("Error processing file: %q\n", err.Error()))
-				errorLabel.Show()
-				errorIcon.Show()
-			} else {
-				// set the values
-				fileNameBS.Set(properties.FileName)
-				fileTypeBS.Set(properties.FileType)
-				hashBS.Set(properties.Hash)
-				fileSizeBS.Set(properties.Size)
-
-				// process the file and show the analysis
-				result := files.ProcessFile(f.URI().Path())
-
-				if result.Completed {
-					showIconAndLabel(processedIcon, processedLabel, processedSeparator)
-				}
-
-				if result.Error != nil {
-					launchErrorDialog(result.Error, window)
-					analysisTextBS.Set(result.Error.Error())
-					showIconAndLabel(errorIcon, errorLabel, errorSeparator)
-				}
-
-				log.Println("File processing done")
-				metadataTextBS.Set(result.Metadata)
-				analysisTextBS.Set(result.Analysis)
-
-				if result.Dangerous {
-					showIconAndLabel(dangerIcon, dangerLabel, dangerSeparator)
-				}
-			}
-
-			progress.Hide()
-			openButton.Enable()
-		}
-
-		dialog.ShowFileOpen(onChosen, window)
-	})
+	openButton = widget.NewButtonWithIcon("Select File", theme.FileIcon(), onOpenButtonClicked)
 
 	buttons.Add(openButton)
 
-	buttons.Add(widget.NewButtonWithIcon("Reset", theme.MediaReplayIcon(), func() {
-		log.Println("Reset was clicked!")
-
-		// blank all the fields
-		analysisTextBS.Set("Select a file...")
-		metadataTextBS.Set("Select a file...")
-		fileNameBS.Set("")
-		fileTypeBS.Set("")
-		hashBS.Set("")
-		fileSizeBS.Set("")
-
-		// clear and hide icons
-		iconSeparator.Hide()
-		hideIconAndLabel(processedIcon, processedLabel, processedSeparator)
-		hideIconAndLabel(errorIcon, errorLabel, errorSeparator)
-		hideIconAndLabel(dangerIcon, dangerLabel, dangerSeparator)
-	}))
+	buttons.Add(widget.NewButtonWithIcon("Reset", theme.MediaReplayIcon(), onResetButtonClicked))
 
 	buttonsAndIcons := container.NewVBox()
 	iconSeparator.Hide()
@@ -211,6 +143,9 @@ func main() {
 
 	// set layout to borders
 	content := container.NewBorder(props, buttonsAndIcons, nil, nil, centreBox)
+
+	// TODO set up drag and drop
+	//window.SetOnDropped()
 
 	// set default size
 	window.Resize(fyne.NewSize(700, 900))
