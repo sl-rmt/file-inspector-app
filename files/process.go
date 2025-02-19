@@ -32,9 +32,10 @@ const (
 	msgMessageID     = "MessageID"
 	msgMSIPLabel     = "Microsoft Information Protection (MSIP) Label"
 
-	emlMimeType = "text/plain; charset=utf-8"
-	msgMimeType = "application/vnd.ms-outlook"
-	pdfMimeType = "application/pdf"
+	emlMimeType  = "text/plain; charset=utf-8"
+	msgMimeType  = "application/vnd.ms-outlook"
+	pdfMimeType  = "application/pdf"
+	docxMimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 )
 
 type FileProperties struct {
@@ -61,28 +62,26 @@ func GetFileProperties(filePath string) (*FileProperties, error) {
 		props.Size = details.SizeString
 	}
 
-	matches, explanation := checkMime(path.Ext(filePath), details.Mimetype)
-
-	if !matches {
-		return nil, fmt.Errorf("mismatched extension and MIME type. %s", explanation)
-	}
-
 	return &props, nil
 }
 
-func checkMime(extension, mime string) (bool, string) {
+func CheckMime(extension, mime string) (bool, string) {
 	switch extension {
 	case ".msg":
 		if mime != msgMimeType {
-			return false, fmt.Sprintf("We expect %s for files with %s extensions, but found %s", msgMimeType, extension, mime)
+			return false, fmt.Sprintf("☠️ We expect %q for files with .msg extensions, but found %q.", msgMimeType, mime)
 		}
 	case ".eml":
 		if mime != emlMimeType {
-			return false, fmt.Sprintf("We expect %s for files with %s extensions, but found %s", emlMimeType, extension, mime)
+			return false, fmt.Sprintf("☠️ We expect %q for files with .eml extensions, but found %q.", emlMimeType, mime)
 		}
 	case ".pdf":
 		if mime != pdfMimeType {
-			return false, fmt.Sprintf("We expect %s for files with %s extensions, but found %s", emlMimeType, extension, mime)
+			return false, fmt.Sprintf("☠️ We expect %q for files with .pdf extensions, but found %q.", pdfMimeType, mime)
+		}
+	case ".docx":
+		if mime != docxMimeType {
+			return false, fmt.Sprintf("☠️ We expect %q for files with .docx extensions, but found %q.", docxMimeType, mime)
 		}
 	}
 
@@ -118,8 +117,9 @@ func ProcessFile(filePath string) *ProcessResult {
 	case ".pdf":
 		log.Println("Parsing PDF file")
 		processPDFFile(&res)
-	// case ".docx":
-	// 	log.Println("Parsing document file")
+	case ".docx":
+	 	log.Println("Parsing document file")
+		processDocxFile(&res)
 	default:
 		res.Completed = false
 		res.Error = fmt.Errorf("unknown file extension %q", fileExt)

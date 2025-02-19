@@ -4,6 +4,7 @@ import (
 	"file-inspector/files"
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
@@ -33,8 +34,11 @@ func onFileChosen(f fyne.URIReadCloser, err error) {
 
 	log.Printf("chosen: %v", f.URI())
 
+	filePathString := f.URI().Path()
+	fileExtension := filepath.Ext(filePathString)
+
 	// check chosen file
-	if !fileOkayToProcess(f.URI().Path()) {
+	if !fileOkayToProcess(fileExtension) {
 		launchInfoDialog("Unsupported File Type", "File is not currently supported", &window)
 		return
 	}
@@ -42,10 +46,11 @@ func onFileChosen(f fyne.URIReadCloser, err error) {
 	// make sure the view is reset
 	onResetButtonClicked()
 
+	// launch progress bad dialog
 	progress := launchProcessingDialog(&window)
 
 	// get and set the file properties
-	properties, err := files.GetFileProperties(f.URI().Path())
+	properties, err := files.GetFileProperties(filePathString)
 
 	if err != nil {
 		analysisTextBS.Set(fmt.Sprintf("Error processing file: %q\n", err.Error()))
@@ -58,8 +63,22 @@ func onFileChosen(f fyne.URIReadCloser, err error) {
 		fileHashBS.Set(properties.Hash)
 		fileSizeBS.Set(properties.Size)
 
+		matches, explanation := files.CheckMime(fileExtension, properties.FileType)
+
+		if !matches {
+			showIconAndLabel(errorIcon, errorLabel, errorSeparator)
+			
+			log.Printf("Mismatched extension and MIME type. %s", explanation)
+			analysisTextBS.Set(fmt.Sprintf("Mismatched extension and MIME type.\n\n%s", explanation))
+
+			// tidy up and return, as we don't want to parse the file as the wrong type
+			progress.Hide()
+			openButton.Enable()
+			return
+		}
+
 		// process the file and show the analysis
-		result := files.ProcessFile(f.URI().Path())
+		result := files.ProcessFile(filePathString)
 
 		if result.Completed {
 			showIconAndLabel(processedIcon, processedLabel, processedSeparator)
@@ -92,8 +111,8 @@ func onResetButtonClicked() {
 	log.Println("Reset was clicked!")
 
 	// blank all the fields
-	analysisTextBS.Set("Select a file...")
-	metadataTextBS.Set("Select a file...")
+	analysisTextBS.Set(defaultSelectText)
+	metadataTextBS.Set(defaultSelectText)
 	fileNameBS.Set("")
 	fileTypeBS.Set("")
 	fileHashBS.Set("")

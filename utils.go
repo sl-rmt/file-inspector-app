@@ -1,13 +1,12 @@
 package main
 
-import "path/filepath"
-
 // check the file extension is one we support
 // return false if not
-func fileOkayToProcess(filePathString string) bool {
-	ext := filepath.Ext(filePathString)
+func fileOkayToProcess(fileExtension string) bool {
 
-	switch ext {
+	switch fileExtension {
+	case ".docx":
+		fallthrough
 	case ".eml":
 		fallthrough
 	case ".msg":
