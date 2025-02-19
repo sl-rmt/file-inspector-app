@@ -67,7 +67,7 @@ func onFileChosen(f fyne.URIReadCloser, err error) {
 
 		if !matches {
 			showIconAndLabel(errorIcon, errorLabel, errorSeparator)
-			
+
 			log.Printf("Mismatched extension and MIME type. %s", explanation)
 			analysisTextBS.Set(fmt.Sprintf("Mismatched extension and MIME type.\n\n%s", explanation))
 

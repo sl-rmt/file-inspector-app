@@ -45,6 +45,16 @@ type FileProperties struct {
 	Size     string
 }
 
+type ProcessResult struct {
+	FilePath  string
+	Error     error
+	Parsed    bool
+	Completed bool
+	Dangerous bool
+	Metadata  string
+	Analysis  string
+}
+
 func GetFileProperties(filePath string) (*FileProperties, error) {
 	props := FileProperties{
 		FileName: filePath,
@@ -86,16 +96,6 @@ func CheckMime(extension, mime string) (bool, string) {
 	}
 
 	return true, ""
-}
-
-type ProcessResult struct {
-	FilePath  string
-	Error     error
-	Parsed    bool
-	Completed bool
-	Dangerous bool
-	Metadata  string
-	Analysis  string
 }
 
 func ProcessFile(filePath string) *ProcessResult {
