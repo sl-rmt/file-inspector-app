@@ -33,6 +33,7 @@ func processPDFFile(result *ProcessResult) {
 	// get metadata
 	md, err := pdf.GetMetadata(result.FilePath)
 
+	// don't care if errors because there's no metadata
 	if err != nil && !strings.Contains(err.Error(), "Failed to get any metadata") {
 		result.Completed = false
 		result.Error = err

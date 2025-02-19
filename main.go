@@ -18,7 +18,7 @@ const (
 	fileTypeText       = "File Type:\t\t"
 	fileSizeText       = "File Size:\t\t"
 	fileSAnalysisText  = "File Analysis"
-	defaultSelectText  = "\n\n\t\tSelect a file to analyse..."
+	defaultSelectText  = "\n\n\n\n\n\t\t\t\t\t\tSelect a file to analyse..."
 )
 
 // These all need to be global to allow us to break up some of the functions
