@@ -14,6 +14,119 @@ const (
 	warningIconType = "warning"
 )
 
+func buildUI() *fyne.Container {
+	// setup styles
+	headingStyle := fyne.TextStyle{
+		Bold: true,
+	}
+
+	// Build file properties section
+	// add properties in vertical box
+	props := getPropertiesContainer(headingStyle)
+
+	// file name
+	fileNameBS = binding.NewString()
+	nameAndLabel := getBoundStringAndLabelContainer(fileNameText, fileNameBS)
+	props.Add(nameAndLabel)
+
+	// hashBS
+	fileHashBS = binding.NewString()
+	hashAndLabel := getBoundStringAndLabelContainer(hashLabelText, fileHashBS)
+	props.Add(hashAndLabel)
+
+	// file mime type
+	fileTypeBS = binding.NewString()
+	typeAndLabel := getBoundStringAndLabelContainer(fileTypeText, fileTypeBS)
+	props.Add(typeAndLabel)
+
+	// file size
+	fileSizeBS = binding.NewString()
+	sizeAndLabel := getBoundStringAndLabelContainer(fileSizeText, fileSizeBS)
+	props.Add(sizeAndLabel)
+
+	// add file analysis section
+	props.Add(widget.NewSeparator())
+	props.Add(widget.NewLabelWithStyle(fileAnalysisText, fyne.TextAlignCenter, headingStyle))
+	props.Add(widget.NewSeparator())
+
+	// add text for the middle tabs
+	metadataTextBS = binding.NewString()
+	metadataBox := getScrollContainer(defaultSelectText, metadataTextBS)
+
+	analysisTextBS = binding.NewString()
+
+	analysisBox := getScrollContainer(defaultSelectText, analysisTextBS)
+
+	// add icons in a horizontal box
+	icons := container.NewHBox()
+
+	// Processed icon - if successfully processed
+	processedIcon, processedLabel, processedSeparator = getIconAndLabel("Processed", true, confirmIconType)
+	icons.Add(processedIcon)
+	icons.Add(processedLabel)
+	icons.Add(processedSeparator)
+
+	// Error icon - if file processing fails
+	errorIcon, errorLabel, errorSeparator = getIconAndLabel("Error", true, errorIconType)
+	icons.Add(errorIcon)
+	icons.Add(errorLabel)
+	icons.Add(errorSeparator)
+
+	// Danger icon - only show where we find something suspicious
+	dangerIcon, dangerLabel, dangerSeparator = getIconAndLabel("Danger", true, warningIconType)
+	icons.Add(dangerIcon)
+	icons.Add(dangerLabel)
+	icons.Add(dangerSeparator)
+
+	iconSeparator = widget.NewSeparator()
+
+	// add buttons in horizontal box
+	buttons := container.NewHBox()
+	openButton = widget.NewButtonWithIcon("Select File", theme.FileIcon(), onOpenButtonClicked)
+
+	buttons.Add(openButton)
+
+	buttons.Add(widget.NewButtonWithIcon("Reset", theme.MediaReplayIcon(), onResetButtonClicked))
+
+	buttonsAndIcons := container.NewVBox()
+	iconSeparator.Hide()
+	buttonsAndIcons.Add(iconSeparator)
+	buttonsAndIcons.Add(icons)
+	buttonsAndIcons.Add(widget.NewSeparator())
+	buttonsAndIcons.Add(buttons)
+	buttonsAndIcons.Add(widget.NewSeparator())
+
+	centreBox := container.NewAppTabs(
+		container.NewTabItem("Content", analysisBox),
+		container.NewTabItem("Metadata", metadataBox),
+	)
+
+	// set layout to borders
+	content := container.NewBorder(props, buttonsAndIcons, nil, nil, centreBox)
+
+	return content
+}
+
+func hideIconAndLabel(icon *widget.Icon, label *widget.Label, sep *widget.Separator) {
+	icon.Hide()
+	label.Hide()
+	sep.Hide()
+}
+
+func showIconAndLabel(icon *widget.Icon, label *widget.Label, sep *widget.Separator) {
+	icon.Show()
+	label.Show()
+	sep.Show()
+}
+
+// TODO get this working
+// // this is called if a file is dropped into the UI
+// func onFileDroppedin(_ fyne.Position, uris []fyne.URI) {
+// 	log.Printf("%d files dropped in\n", len(uris))
+
+// 	onFileChosen(uris[0], nil)
+// }
+
 // Container box
 func getPropertiesContainer(headingStyle fyne.TextStyle) *fyne.Container {
 	props := container.NewVBox()
