@@ -14,13 +14,7 @@ const (
 	windowWidth  = 700
 	windowHeight = 900
 
-	filePropertiesText = "File Properties"
-	fileNameText       = "File Name:\t\t"
-	hashLabelText      = "SHA256 Hash:\t"
-	fileTypeText       = "File Type:\t\t"
-	fileSizeText       = "File Size:\t\t"
-	fileAnalysisText   = "File Analysis"
-	defaultSelectText  = "\n\n\n\n\n\t\t\t\t\t\tSelect a file to analyse..."
+	
 )
 
 // These all need to be global to allow us to break up some of the functions

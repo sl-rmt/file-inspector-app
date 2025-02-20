@@ -12,6 +12,13 @@ const (
 	errorIconType   = "error"
 	confirmIconType = "confirm"
 	warningIconType = "warning"
+
+	filePropertiesText = "File Properties"
+	fileNameText       = "File Name:\t\t"
+	hashLabelText      = "SHA256 Hash:\t"
+	fileTypeText       = "File Type:\t\t"
+	fileSizeText       = "File Size:\t\t"
+	fileAnalysisText   = "File Analysis"
 )
 
 func buildUI() *fyne.Container {

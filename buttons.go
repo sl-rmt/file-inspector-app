@@ -10,6 +10,10 @@ import (
 	"fyne.io/fyne/v2/dialog"
 )
 
+const (
+	defaultSelectText = "\n\n\n\n\n\t\t\t\t\t\tSelect a file to analyse..."
+)
+
 func onOpenButtonClicked() {
 	log.Println("Select file was clicked!")
 
