@@ -24,6 +24,9 @@ func onOpenButtonClicked() {
 }
 
 func onFileChosen(f fyne.URIReadCloser, err error) {
+	// make sure the view is reset
+	onResetButtonClicked()
+
 	if err != nil {
 		log.Printf("Error from file picker: %s\n", err.Error())
 		return
@@ -44,11 +47,9 @@ func onFileChosen(f fyne.URIReadCloser, err error) {
 	// check chosen file
 	if !fileOkayToProcess(fileExtension) {
 		launchInfoDialog("Unsupported File Type", "File is not currently supported", &window)
+		openButton.Enable()
 		return
 	}
-
-	// make sure the view is reset
-	onResetButtonClicked()
 
 	// launch progress bad dialog
 	progress := launchProcessingDialog(&window)
