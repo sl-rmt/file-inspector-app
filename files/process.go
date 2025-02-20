@@ -9,29 +9,6 @@ import (
 )
 
 const (
-	authResults = "Authentication-Results"
-	subject     = "Subject"
-
-	emlFrom        = "From"
-	emlReturnPath  = "Return-Path"
-	emlTo          = "To"
-	emlDate        = "Date"
-	emlMessageID   = "Message-ID"
-	emlContentType = "Content-Type"
-
-	msgSender        = "Sender name"
-	msgDisplayName   = "Sender Simple Display Name"
-	msgSenderSMTP    = "Sender SMTP Address"
-	msgSenderEmail   = "Sender Email"
-	msgSenderEmail2  = "Sender Email 2"
-	msg7bitEmail     = "Seven Bit Email"
-	msgReceivedName  = "Received by name"
-	msgReceivedSMTP  = "Received By SMTP Address"
-	msgReceivedEmail = "Received by email"
-	messageTopic     = "Topic"
-	msgMessageID     = "MessageID"
-	msgMSIPLabel     = "Microsoft Information Protection (MSIP) Label"
-
 	emlMimeType  = "text/plain; charset=utf-8"
 	msgMimeType  = "application/vnd.ms-outlook"
 	pdfMimeType  = "application/pdf"

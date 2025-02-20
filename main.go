@@ -17,7 +17,7 @@ const (
 	hashLabelText      = "SHA256 Hash:\t"
 	fileTypeText       = "File Type:\t\t"
 	fileSizeText       = "File Size:\t\t"
-	fileSAnalysisText  = "File Analysis"
+	fileAnalysisText   = "File Analysis"
 	defaultSelectText  = "\n\n\n\n\n\t\t\t\t\t\tSelect a file to analyse..."
 )
 
@@ -50,11 +50,9 @@ var (
 func main() {
 	// create an app and window instance
 	myApp := app.New()
-
-	//deprecated: instead "export FYNE_THEME=light"
-	//myApp.Settings().SetTheme(theme.LightTheme())
-
+	myApp.Settings().SetTheme(&WindowTheme{Theme: theme.DefaultTheme()})
 	window = myApp.NewWindow(appName)
+	
 
 	// setup styles
 	headingStyle := fyne.TextStyle{
@@ -87,7 +85,7 @@ func main() {
 
 	// add file analysis section
 	props.Add(widget.NewSeparator())
-	props.Add(widget.NewLabelWithStyle(fileSAnalysisText, fyne.TextAlignCenter, headingStyle))
+	props.Add(widget.NewLabelWithStyle(fileAnalysisText, fyne.TextAlignCenter, headingStyle))
 	props.Add(widget.NewSeparator())
 
 	// add text for the middle tabs
@@ -95,6 +93,7 @@ func main() {
 	metadataBox := getScrollContainer(defaultSelectText, metadataTextBS)
 
 	analysisTextBS = binding.NewString()
+
 	analysisBox := getScrollContainer(defaultSelectText, analysisTextBS)
 
 	// add icons in a horizontal box
