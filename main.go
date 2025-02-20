@@ -13,8 +13,6 @@ const (
 
 	windowWidth  = 700
 	windowHeight = 900
-
-	
 )
 
 // These all need to be global to allow us to break up some of the functions
@@ -28,7 +26,9 @@ var (
 	fileTypeBS     binding.String
 	fileSizeBS     binding.String
 	fileHashBS     binding.String
-	metadataTextBS binding.String
+
+	metadataTable     *widget.Table
+	metadataTableData [][]string
 
 	errorLabel     *widget.Label
 	errorIcon      *widget.Icon

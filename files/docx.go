@@ -1,16 +1,14 @@
 package files
 
 import (
-	"bytes"
 	"file-inspector/files/docx"
-	"fmt"
 	"log"
 	"strings"
-	"text/tabwriter"
 )
 
 func processDocxFile(result *ProcessResult) {
-	var _, metadata bytes.Buffer
+	//var analysisText bytes.Buffer
+	var metadata [][]string
 
 	// get metadata
 	coreProps, customProps, err := docx.GetDocProperties(result.FilePath)
@@ -33,17 +31,24 @@ func processDocxFile(result *ProcessResult) {
 			"Language":      coreProps.Language,
 		}
 
-		printWithTabs(&metadata, "Core Properties\n", coreMap)
+		for key, value := range coreMap {
+			if len(value) > 0 {
+				metadata = append(metadata, []string{key, value})
+			}
+		}
 	}
 
 	if customProps != nil {
 		customMap := make(map[string]string)
-		
-		if err == nil {
-			for _, prop := range customProps.Properties {
-				customMap[prop.Name] = prop.Value
+
+		for _, prop := range customProps.Properties {
+			customMap[prop.Name] = prop.Value
+		}
+
+		for key, value := range customMap {
+			if len(value) > 0 {
+				metadata = append(metadata, []string{key, value})
 			}
-			printWithTabs(&metadata, "Custom Properties\n", customMap)
 		}
 	}
 
@@ -51,21 +56,6 @@ func processDocxFile(result *ProcessResult) {
 	result.Completed = true
 
 	//result.Analysis = analysis.String()
-	result.Metadata = metadata.String()
-	
-}
+	result.Metadata = metadata
 
-// printWithTabs outputs properties using a tab writer
-func printWithTabs(metadata *bytes.Buffer, title string, properties map[string]string) {
-	w := tabwriter.NewWriter(metadata, 0, 8, 1, '\t', 0)
-	
-	fmt.Fprintln(w, title)
-	
-	for key, value := range properties {
-		if len(value) > 0 {
-			fmt.Fprintf(w, "%s\t%s\n", key, value)
-		}
-	}
-	
-	w.Flush()
 }

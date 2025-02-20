@@ -28,7 +28,7 @@ type ProcessResult struct {
 	Parsed    bool
 	Completed bool
 	Dangerous bool
-	Metadata  string
+	Metadata  [][]string
 	Analysis  string
 }
 
@@ -95,7 +95,7 @@ func ProcessFile(filePath string) *ProcessResult {
 		log.Println("Parsing PDF file")
 		processPDFFile(&res)
 	case ".docx":
-	 	log.Println("Parsing document file")
+		log.Println("Parsing document file")
 		processDocxFile(&res)
 	default:
 		res.Completed = false

@@ -99,9 +99,15 @@ func onFileChosen(f fyne.URIReadCloser, err error) {
 		}
 
 		log.Println("File processing done")
-		metadataTextBS.Set(result.Metadata)
+
+		// update the table
+		metadataTableData = append(metadataTableData, result.Metadata...)
+		metadataTable.Refresh()
+
+		// update the analysis box
 		analysisTextBS.Set(result.Analysis)
 
+		// set the flags
 		if result.Dangerous {
 			showIconAndLabel(dangerIcon, dangerLabel, dangerSeparator)
 			launchInfoDialog("Potentially Dangerous File", "Warning: dangerous file found", &window)
@@ -117,7 +123,10 @@ func onResetButtonClicked() {
 
 	// blank all the fields
 	analysisTextBS.Set(defaultSelectText)
-	metadataTextBS.Set(defaultSelectText)
+	metadataTableData = [][]string{
+		{"Field", "Value"},
+	}
+	metadataTable.Refresh()
 	fileNameBS.Set("")
 	fileTypeBS.Set("")
 	fileHashBS.Set("")

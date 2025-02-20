@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"text/tabwriter"
 
 	"file-inspector/files/pdf"
 )
 
 func processPDFFile(result *ProcessResult) {
-	var analysis, metadata bytes.Buffer
+	var analysis bytes.Buffer
+	var metadata [][]string
 
 	// check encryption
 	encrypted, err := pdf.IsEncrypted(result.FilePath)
@@ -41,16 +41,9 @@ func processPDFFile(result *ProcessResult) {
 	}
 
 	if len(md) > 0 {
-		w := new(tabwriter.Writer)
-		w.Init(&metadata, 0, 8, 1, '\t', 0)
-
 		for field, value := range md {
-			fmt.Fprintf(w, "%s\t%s\n", strings.TrimSpace(field), value)
+			metadata = append(metadata, []string{strings.TrimSpace(field), value})
 		}
-
-		w.Flush()
-	} else {
-		metadata.WriteString("No metadata found in file")
 	}
 
 	// check for active content
@@ -73,6 +66,6 @@ func processPDFFile(result *ProcessResult) {
 
 	log.Println("PDF processing done")
 	result.Analysis = analysis.String()
-	result.Metadata = metadata.String()
+	result.Metadata = metadata
 	result.Completed = true
 }

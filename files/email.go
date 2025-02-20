@@ -52,20 +52,21 @@ func processMsgFile(result *ProcessResult) {
 		return
 	}
 
-	
 	log.Println("Email parsing done")
 	result.Parsed = true
 
 	// print key fields
 	keyFieldNames := []string{msgSender, msgDisplayName, msgSenderSMTP, msgSenderEmail, msgSenderEmail2, msgReceivedName, msgReceivedSMTP, msg7bitEmail, msgReceivedEmail, subject, messageTopic, msgMessageID}
-	var analysis, metadata bytes.Buffer
+
+	var analysis bytes.Buffer
+	var metadata [][]string
 
 	// Print values
 	for _, fieldName := range keyFieldNames {
 		field := msg.GetPropertyByName(fieldName)
 
 		if len(field) > 0 {
-			metadata.WriteString(fmt.Sprintf("%s: %q\n", fieldName, field))
+			metadata = append(metadata, []string{fieldName, field})
 		}
 	}
 
@@ -78,8 +79,7 @@ func processMsgFile(result *ProcessResult) {
 		result.Error = err
 		return
 	} else if authHeader != "" {
-		result.Dangerous = parseAuthResults(authHeader, &metadata)
-		metadata.WriteString("\n")
+		result.Dangerous = parseAuthResults(authHeader, &analysis)
 	}
 
 	// body details
@@ -91,7 +91,7 @@ func processMsgFile(result *ProcessResult) {
 	}
 
 	log.Println("Msg processing done")
-	result.Metadata = metadata.String()
+	result.Metadata = metadata
 	result.Analysis = analysis.String()
 	result.Completed = true
 }
@@ -108,14 +108,15 @@ func processEmlFile(result *ProcessResult) {
 	}
 
 	keyHeaders := []string{emlFrom, emlReturnPath, emlTo, emlDate, subject, emlMessageID, emlContentType}
-	var analysis, metadata bytes.Buffer
+	var analysis bytes.Buffer
+	var metadata [][]string
 
 	// Print values
 	for _, fieldName := range keyHeaders {
 		field := emlFile.Message.Header.Get(fieldName)
 
 		if len(field) > 0 {
-			metadata.WriteString(fmt.Sprintf("%s: %q\n", fieldName, field))
+			metadata = append(metadata, []string{fieldName, field})
 		}
 	}
 
@@ -124,7 +125,7 @@ func processEmlFile(result *ProcessResult) {
 	result.Dangerous = false
 
 	if authHeader != "" {
-		result.Dangerous = parseAuthResults(authHeader, &metadata)
+		result.Dangerous = parseAuthResults(authHeader, &analysis)
 	}
 
 	// add attachment details, if there are any
@@ -136,7 +137,7 @@ func processEmlFile(result *ProcessResult) {
 	inspectBody(emlFile.Body, &analysis)
 
 	log.Println("Eml processing done")
-	result.Metadata = metadata.String()
+	result.Metadata = metadata
 	result.Analysis = analysis.String()
 	result.Completed = true
 }

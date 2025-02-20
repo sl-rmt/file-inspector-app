@@ -19,6 +19,10 @@ const (
 	fileTypeText       = "File Type:\t\t"
 	fileSizeText       = "File Size:\t\t"
 	fileAnalysisText   = "File Analysis"
+
+	metadataTableNumColumns       = 2
+	metadataTableFieldColumnID    = 0
+	metadataTableFieldColumnWidth = 200
 )
 
 func buildUI() *fyne.Container {
@@ -56,9 +60,29 @@ func buildUI() *fyne.Container {
 	props.Add(widget.NewLabelWithStyle(fileAnalysisText, fyne.TextAlignCenter, headingStyle))
 	props.Add(widget.NewSeparator())
 
+	// create the metadata table
+	metadataTableData = [][]string{
+		{"Field", "Value"},
+	}
+
+	metadataTable = widget.NewTable(
+		func() (int, int) {
+			return len(metadataTableData), metadataTableNumColumns
+		},
+		func() fyne.CanvasObject {
+			return widget.NewLabel("Metadata")
+		},
+		func(i widget.TableCellID, o fyne.CanvasObject) {
+			if o.(*widget.Label) != nil {
+				o.(*widget.Label).SetText(metadataTableData[i.Row][i.Col])
+			}
+		},
+	)
+
+	metadataTable.SetColumnWidth(metadataTableFieldColumnID, metadataTableFieldColumnWidth)
+	metadataBox := container.NewScroll(metadataTable)
+
 	// add text for the middle tabs
-	metadataTextBS = binding.NewString()
-	metadataBox := getScrollContainer(defaultSelectText, metadataTextBS)
 
 	analysisTextBS = binding.NewString()
 
@@ -92,7 +116,6 @@ func buildUI() *fyne.Container {
 	openButton = widget.NewButtonWithIcon("Select File", theme.FileIcon(), onOpenButtonClicked)
 
 	buttons.Add(openButton)
-
 	buttons.Add(widget.NewButtonWithIcon("Reset", theme.MediaReplayIcon(), onResetButtonClicked))
 
 	buttonsAndIcons := container.NewVBox()
